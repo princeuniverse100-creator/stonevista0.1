@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Sign In — StoneVista</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="static/hero.css">
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<!-- ═══ NAVBAR ════════════════════════════════════════ -->
+<nav>
+  <a class="brand" href="/">Stone<em>Vista</em></a>
+  <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+  <div class="nav-links" id="nav-links">
+    <a href="/#about">About</a>
+    <a href="/#offer">Features</a>
+    <a href="/#process">How It Works</a>
+    <a href="/login">Sign In</a>
+    <a href="/register" class="nav-cta">Get Started</a>
+  </div>
+</nav>
+
+<!-- ═══ LOGIN FORM ════════════════════════════════════ -->
+<div class="page-body form-page">
+  <div class="form-card reveal">
+
+    <p class="form-eyebrow">Welcome Back</p>
+    <div class="rule"></div>
+    <h1 class="form-title">Sign in to<br><em>StoneVista</em></h1>
+    <p class="form-subtitle">Access your account to manage your store and connect with buyers.</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form action="/login" method="POST">
+
+      <div class="field-group">
+        <label class="field-label" for="username">Username</label>
+        <input
+          type="text" class="field-input" id="username"
+          placeholder="Enter your username" name="username"
+          required autocomplete="username"
+        >
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="password">Password</label>
+        <input
+          type="password" class="field-input" id="password"
+          placeholder="Enter your password" name="password"
+          required autocomplete="current-password"
+        >
+      </div>
+
+      <button type="submit" class="btn-form-primary">Sign In</button>
+
+    </form>
+
+    <div class="form-divider"><span>or</span></div>
+
+    <a href="/register" class="btn-form-ghost">Create a New Account</a>
+
+  </div>
+</div>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring   = document.getElementById('cursor-ring');
+  let mx=0, my=0, rx=0, ry=0;
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.transform = `translate(${mx}px,${my}px) translate(-50%,-50%)`;
+  });
+  (function animateRing() {
+    rx += (mx - rx) * .12; ry += (my - ry) * .12;
+    ring.style.transform = `translate(${rx}px,${ry}px) translate(-50%,-50%)`;
+    requestAnimationFrame(animateRing);
+  })();
+
+  // ✅ FIXED: matching id="hamburger" and id="nav-links"
+  const ham  = document.getElementById('hamburger');
+  const menu = document.getElementById('nav-links');
+  ham.addEventListener('click', () => { ham.classList.toggle('open'); menu.classList.toggle('open'); });
+  menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => { ham.classList.remove('open'); menu.classList.remove('open'); }));
+
+  // Reveal
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); io.unobserve(e.target); } });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(r => io.observe(r));
+</script>
+
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Edit Stone Catalogue — StoneVista</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/hero.css">
+  <link rel="stylesheet" href="/static/stonevista.css">
+  <style>
+    .marble-check-overlay { position:absolute;inset:0;border-radius:inherit;background:rgba(200,184,154,0.08);opacity:0;pointer-events:none;transition:opacity .2s; }
+    .marble-item.selected .marble-check-overlay { opacity:1; }
+    .marble-item input[type="checkbox"] { position:absolute;top:10px;right:10px;width:18px;height:18px;accent-color:var(--gold-line);cursor:pointer;z-index:2; }
+    .marble-edit-btn { position:absolute;bottom:0;left:0;right:0;z-index:3;padding:8px;text-align:center;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);transform:translateY(100%);transition:transform .25s; }
+    .marble-item:hover .marble-edit-btn { transform:translateY(0); }
+    .marble-edit-btn a { font-size:11px;font-weight:500;letter-spacing:.5px;text-transform:uppercase;color:var(--gold-line);text-decoration:none;border:1px solid rgba(200,184,154,0.4);padding:5px 14px;border-radius:980px;transition:background .2s; }
+    .marble-edit-btn a:hover { background:rgba(200,184,154,0.1); }
+    .marble-detail-badge { position:absolute;top:8px;left:8px;z-index:2;font-size:9px;letter-spacing:.5px;text-transform:uppercase;background:rgba(200,184,154,0.9);color:#000;padding:2px 8px;border-radius:980px;font-weight:600; }
+    .two-col { display:grid;grid-template-columns:1fr 1fr;gap:20px; }
+    @media(max-width:600px){.two-col{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+<nav>
+  <a class="brand" href="/">Stone<em>Vista</em></a>
+  <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+  <div class="nav-links" id="nav-links">
+    <a href="/dashboard">← Dashboard</a>
+    <a href="/logout">Sign Out</a>
+  </div>
+</nav>
+<div class="page-body">
+  <div class="info-page">
+    <div class="info-wrap">
+
+      <div class="info-page-header reveal">
+        <p class="section-label-sm">Dashboard · Edit</p>
+        <div class="rule"></div>
+        <h1 class="info-page-title">Stone<br><em>Catalogue</em></h1>
+        <p class="info-page-sub">Select stones for your store. Hover a card and click "Edit Details" to add name, type, origin, and specs.</p>
+      </div>
+
+      <!-- SELECT STONES -->
+      <form action="/dashboard/edit/marbles" method="POST">
+        <div class="info-block reveal">
+          <h2 class="info-block-title">Available Stones</h2>
+          <p class="info-block-sub">Highlighted cards appear on your store. Hover to edit individual marble details.</p>
+          <p class="selection-count">Selected: <strong id="sel-count">{{ current_ids|length }}</strong> stones</p>
+          <div class="marble-grid">
+            {% for marble in all_marbles %}
+            <div class="marble-item {% if marble.id|string in current_ids %}selected{% endif %}"
+                 id="mi-{{ marble.id }}" onclick="toggleMarble({{ marble.id }})">
+              <img src="{{ url_for('uploaded_marble_file', filename=marble.filename) }}" alt="{{ marble.filename }}">
+              <div class="marble-check-overlay"></div>
+              {% if marble.marble_name %}<div class="marble-detail-badge">✓ Details</div>{% endif %}
+              <input type="checkbox" name="selected_marbles" id="cb-{{ marble.id }}" value="{{ marble.id }}"
+                     {% if marble.id|string in current_ids %}checked{% endif %}
+                     onclick="event.stopPropagation();" onchange="updateCount()">
+              <div class="marble-label">{{ marble.marble_name or (marble.filename | replace('.jpg','') | replace('.png','') | replace('_',' ') | title) }}</div>
+              <div class="marble-edit-btn">
+                <a href="/dashboard/marble/edit/{{ marble.id }}" onclick="event.stopPropagation();">Edit Details</a>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% if not all_marbles %}
+          <p style="color:var(--mid);font-size:14px;text-align:center;padding:40px 0;">No stone samples available. Add your own stone below.</p>
+          {% endif %}
+        </div>
+        <div class="info-action-bar reveal">
+          <a href="/dashboard" class="btn-info-cancel">Cancel</a>
+          <button type="submit" class="btn-info-submit">Save Selection</button>
+        </div>
+      </form>
+
+      <!-- ADD YOUR OWN STONE -->
+      <div class="info-block reveal" style="margin-top:32px;">
+        <h2 class="info-block-title">Add Your Own Stone</h2>
+        <p class="info-block-sub">Upload a new stone image to your catalogue. It will be automatically added to your selection and you can then add full details.</p>
+
+        <form action="/dashboard/marble/add" method="POST" enctype="multipart/form-data">
+          <div class="two-col">
+
+            <div class="field-group">
+              <label class="field-label">Stone Name *</label>
+              <input type="text" class="field-input" name="marble_name" required
+                     placeholder="e.g. Rajasthan Pink Granite">
+            </div>
+
+            <!-- CUSTOM SELECT — stone type -->
+            <div class="field-group">
+              <label class="field-label">Stone Type</label>
+              <div class="sv-select-wrap" id="sw-type">
+                <select name="marble_type" id="sel-type">
+                  <option value="">Select type</option>
+                  <option value="Marble">Marble</option>
+                  <option value="Granite">Granite</option>
+                  <option value="Quartz">Quartz</option>
+                  <option value="Sandstone">Sandstone</option>
+                  <option value="Limestone">Limestone</option>
+                  <option value="Slate">Slate</option>
+                  <option value="Travertine">Travertine</option>
+                </select>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Stone Image *</label>
+            <input type="file" class="field-input" name="marble_image" accept="image/*" required
+                   style="padding:10px;cursor:pointer;"
+                   onchange="previewMarble(this)">
+          </div>
+
+          <div id="marble-upload-preview" style="display:none;margin-bottom:16px;">
+            <img id="marble-preview-img" src="" alt=""
+                 style="width:180px;height:130px;object-fit:cover;border-radius:12px;border:1px solid rgba(255,255,255,.1);">
+          </div>
+
+          <div class="info-action-bar" style="border-top:none;padding-top:4px;margin-top:0;">
+            <button type="submit" class="btn-info-submit">Upload Stone →</button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ── Cursor ── */
+  const c=document.getElementById('cursor'),r=document.getElementById('cursor-ring');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;c.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`;});
+  (function ar(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;r.style.transform=`translate(${rx}px,${ry}px) translate(-50%,-50%)`;requestAnimationFrame(ar);})();
+  const h=document.getElementById('hamburger'),m=document.getElementById('nav-links');
+  h.addEventListener('click',()=>{h.classList.toggle('open');m.classList.toggle('open');});
+  m.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{h.classList.remove('open');m.classList.remove('open');}));
+  const io=new IntersectionObserver(e=>{e.forEach((en,i)=>{if(en.isIntersecting){setTimeout(()=>en.target.classList.add('visible'),i*80);io.unobserve(en.target);}});},{threshold:.08});
+  document.querySelectorAll('.reveal').forEach(r=>io.observe(r));
+
+  /* ── Marble selection ── */
+  function toggleMarble(id){const item=document.getElementById('mi-'+id),cb=document.getElementById('cb-'+id);cb.checked=!cb.checked;item.classList.toggle('selected',cb.checked);updateCount();}
+  function updateCount(){document.getElementById('sel-count').textContent=document.querySelectorAll('.marble-item input:checked').length;}
+
+  /* ── Image preview ── */
+  function previewMarble(input) {
+    if (!input.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('marble-preview-img').src = e.target.result;
+      document.getElementById('marble-upload-preview').style.display = 'block';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+
+  /* ══════════════════════════════════════════════
+     CUSTOM SELECT — replaces native <select>
+     Reads options from the hidden <select> element
+     and builds a styled custom dropdown.
+  ══════════════════════════════════════════════ */
+  function initCustomSelect(wrapId, selectId) {
+    const wrap   = document.getElementById(wrapId);
+    const select = document.getElementById(selectId);
+    if (!wrap || !select) return;
+
+    // Build button
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'sv-select-btn placeholder';
+    btn.innerHTML = `<span class="sv-label">${select.options[0].text}</span><span class="sv-arrow"></span>`;
+    wrap.appendChild(btn);
+
+    // Build dropdown
+    const dd = document.createElement('div');
+    dd.className = 'sv-dropdown';
+    Array.from(select.options).forEach((opt, i) => {
+      const item = document.createElement('div');
+      item.className = 'sv-option' + (i === 0 ? ' placeholder-opt' : '');
+      item.textContent = opt.text;
+      item.dataset.value = opt.value;
+      item.addEventListener('click', () => {
+        select.value = opt.value;
+        btn.querySelector('.sv-label').textContent = opt.text;
+        btn.classList.toggle('placeholder', i === 0);
+        dd.querySelectorAll('.sv-option').forEach(o => o.classList.remove('active'));
+        item.classList.add('active');
+        wrap.classList.remove('open');
+      });
+      dd.appendChild(item);
+    });
+    wrap.appendChild(dd);
+
+    // Toggle open/close
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // Close all other open dropdowns
+      document.querySelectorAll('.sv-select-wrap.open').forEach(w => { if(w !== wrap) w.classList.remove('open'); });
+      wrap.classList.toggle('open');
+    });
+  }
+
+  // Close on outside click
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.sv-select-wrap.open').forEach(w => w.classList.remove('open'));
+  });
+
+  // Init all custom selects on this page
+  initCustomSelect('sw-type', 'sel-type');
+</script>
+</body>
+</html>

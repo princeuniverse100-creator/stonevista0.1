@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Edit Shop Photos — StoneVista</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/hero.css">
+  <style>
+    /* Photo grid */
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 8px;
+    }
+    .photo-tile {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      aspect-ratio: 4/3;
+      background: var(--space-mid);
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+    .photo-tile img {
+      width: 100%; height: 100%; object-fit: cover;
+      display: block; opacity: .85;
+      transition: opacity .3s;
+    }
+    .photo-tile:hover img { opacity: 1; }
+    .photo-tile-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,.7) 0%, transparent 50%);
+      opacity: 0; transition: opacity .3s;
+      display: flex; align-items: flex-end; padding: 12px;
+    }
+    .photo-tile:hover .photo-tile-overlay { opacity: 1; }
+
+    /* Delete button */
+    .btn-photo-delete {
+      width: 100%;
+      padding: 7px 0;
+      background: rgba(255,107,107,0.2);
+      color: var(--error);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px; font-weight: 500; letter-spacing: .5px;
+      text-transform: uppercase;
+      border: 1px solid rgba(255,107,107,0.3);
+      border-radius: 980px; cursor: pointer;
+      transition: background .2s;
+    }
+    .btn-photo-delete:hover { background: rgba(255,107,107,0.35); }
+
+    /* Upload drop zone */
+    .drop-zone {
+      width: 100%;
+      border: 1px dashed rgba(200,184,154,0.3);
+      border-radius: 14px; padding: 40px 24px;
+      text-align: center; cursor: pointer;
+      transition: border-color .2s, background .2s;
+      position: relative; background: rgba(255,255,255,0.02);
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: var(--gold-line); background: rgba(200,184,154,0.04);
+    }
+    .drop-zone input[type="file"] {
+      position: absolute; inset: 0;
+      opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .drop-icon  { font-size: 28px; margin-bottom: 10px; }
+    .drop-title { font-size: 14px; font-weight: 400; color: var(--white); margin-bottom: 4px; }
+    .drop-sub   { font-size: 12px; color: var(--mid); }
+    .drop-hint  { font-size: 11px; color: var(--gold-line); margin-top: 8px; }
+
+    /* Preview strip */
+    .new-previews { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+    .new-thumb {
+      width: 72px; height: 72px; border-radius: 10px;
+      object-fit: cover; border: 1px solid rgba(255,255,255,.1);
+    }
+
+    @media (max-width: 768px) { .photo-grid { grid-template-columns: repeat(2,1fr); } }
+    @media (max-width: 480px) { .photo-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<nav>
+  <a class="brand" href="/">Stone<em>Vista</em></a>
+  <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+  <div class="nav-links" id="nav-links">
+    <a href="/dashboard">← Dashboard</a>
+    <a href="/logout">Sign Out</a>
+  </div>
+</nav>
+
+<div class="page-body">
+  <div class="info-page">
+    <div class="info-wrap">
+
+      <div class="info-page-header reveal">
+        <p class="section-label-sm">Dashboard · Edit</p>
+        <div class="rule"></div>
+        <h1 class="info-page-title">Shop<br><em>Photos</em></h1>
+        <p class="info-page-sub">Manage the photos that appear in the hero carousel on your public store page.</p>
+      </div>
+
+      <!-- Current Photos -->
+      <div class="info-block reveal">
+        <h2 class="info-block-title">Current Photos</h2>
+        <p class="info-block-sub">Hover over a photo and click Remove to delete it permanently.</p>
+
+        {% if current_photos %}
+        <div class="photo-grid">
+          {% for photo in current_photos %}
+          {% if photo %}
+          <div class="photo-tile">
+            <img src="{{ url_for('uploaded_seller_file', filename=photo) }}" alt="Shop photo">
+            <div class="photo-tile-overlay">
+              <form action="/dashboard/edit/photos/delete" method="POST" style="width:100%;">
+                <input type="hidden" name="filename" value="{{ photo }}">
+                <button type="submit" class="btn-photo-delete"
+                        onclick="return confirm('Remove this photo?')">
+                  Remove
+                </button>
+              </form>
+            </div>
+          </div>
+          {% endif %}
+          {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align:center; padding:40px 0; color:var(--mid); font-size:14px;">
+          No photos uploaded yet.
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Upload New Photos -->
+      <div class="info-block reveal">
+        <h2 class="info-block-title">Add New Photos</h2>
+        <p class="info-block-sub">Upload additional photos to your shop carousel. You can select multiple at once.</p>
+
+        <form action="/dashboard/edit/photos" method="POST" enctype="multipart/form-data">
+
+          <div class="drop-zone" id="drop-zone">
+            <input type="file" name="shop_photos" id="photo-input"
+                   multiple accept="image/*"
+                   onchange="previewPhotos(this)">
+            <div class="drop-icon">📷</div>
+            <p class="drop-title">Click to upload or drag photos here</p>
+            <p class="drop-sub">JPG, PNG, WEBP supported</p>
+            <p class="drop-hint" id="drop-hint">No files selected</p>
+          </div>
+
+          <div class="new-previews" id="new-previews"></div>
+
+          <div class="info-action-bar" style="margin-top:24px;">
+            <a href="/dashboard" class="btn-info-cancel">Cancel</a>
+            <button type="submit" class="btn-info-submit">Upload Photos</button>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  const c=document.getElementById('cursor'),r=document.getElementById('cursor-ring');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;c.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`;});
+  (function ar(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;r.style.transform=`translate(${rx}px,${ry}px) translate(-50%,-50%)`;requestAnimationFrame(ar);})();
+  const h=document.getElementById('hamburger'),m=document.getElementById('nav-links');
+  h.addEventListener('click',()=>{h.classList.toggle('open');m.classList.toggle('open');});
+  m.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{h.classList.remove('open');m.classList.remove('open');}));
+  const io=new IntersectionObserver(e=>{e.forEach((en,i)=>{if(en.isIntersecting){setTimeout(()=>en.target.classList.add('visible'),i*80);io.unobserve(en.target);}});},{threshold:.08});
+  document.querySelectorAll('.reveal').forEach(r=>io.observe(r));
+
+  function previewPhotos(input) {
+    const prev = document.getElementById('new-previews');
+    const hint = document.getElementById('drop-hint');
+    prev.innerHTML = '';
+    const files = Array.from(input.files).slice(0, 8);
+    hint.textContent = files.length ? `${files.length} file${files.length > 1 ? 's' : ''} selected` : 'No files selected';
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        img.className = 'new-thumb';
+        prev.appendChild(img);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  const dz = document.getElementById('drop-zone');
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.classList.remove('dragover');
+    const inp = document.getElementById('photo-input');
+    inp.files = e.dataTransfer.files;
+    previewPhotos(inp);
+  });
+</script>
+</body>
+</html>

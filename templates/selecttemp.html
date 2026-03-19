@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Choose Template — StoneVista</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="static/hero.css">
+  <style>
+    /* ── Template grid ── */
+    .template-page {
+      min-height: calc(100vh - 52px);
+      padding: 60px 0 100px;
+      background: var(--black);
+    }
+    .template-wrap {
+      max-width: 1080px; margin: 0 auto; padding: 0 48px;
+    }
+
+    /* Two-column grid for template cards */
+    .template-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 24px;
+      margin-top: 48px;
+    }
+
+    /* Each template card */
+    .template-card {
+      background: var(--space);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      transition: border-color .3s, transform .3s, box-shadow .3s;
+      cursor: pointer;
+    }
+    .template-card:hover {
+      border-color: rgba(200,184,154,0.3);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    .template-card.selected {
+      border-color: var(--gold-line);
+      box-shadow: 0 0 0 2px rgba(200,184,154,0.2), 0 20px 60px rgba(0,0,0,0.4);
+    }
+    .template-card::before {
+      content: '';
+      position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
+      background: linear-gradient(to right, transparent, rgba(200,184,154,0.2), transparent);
+    }
+
+    /* Selected badge */
+    .selected-badge {
+      position: absolute; top: 14px; right: 14px; z-index: 3;
+      background: var(--gold-line); color: var(--black);
+      font-size: 10px; font-weight: 600; letter-spacing: 1px;
+      text-transform: uppercase; padding: 4px 10px; border-radius: 980px;
+      display: none;
+    }
+    .template-card.selected .selected-badge { display: block; }
+
+    /* Template mini-preview window */
+    .template-preview {
+      margin: 24px 24px 0;
+      border-radius: 12px; overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: var(--space-mid);
+      height: 200px; position: relative;
+    }
+
+    /* Template 1 — Minimal Luxury preview */
+    .preview-t1 { background: #f7f4ef; }
+    .preview-t1 .pv-nav {
+      height: 32px; background: rgba(247,244,239,0.95);
+      border-bottom: 1px solid #e8e2d9;
+      display: flex; align-items: center; padding: 0 12px;
+      gap: 8px;
+    }
+    .preview-t1 .pv-brand {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 11px; color: #1a1814; font-weight: 600;
+    }
+    .preview-t1 .pv-hero {
+      height: 80px; background: linear-gradient(135deg, #2a2520, #4a4035);
+      display: flex; align-items: flex-end; padding: 10px 12px;
+    }
+    .preview-t1 .pv-hero-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 13px; color: #fff; font-weight: 300; line-height: 1.2;
+    }
+    .preview-t1 .pv-grid {
+      display: flex; gap: 4px; padding: 8px 12px;
+    }
+    .preview-t1 .pv-swatch {
+      flex: 1; height: 36px; border-radius: 4px;
+      background: #c9bfb0;
+    }
+    .preview-t1 .pv-swatch:nth-child(2) { background: #b8a898; }
+    .preview-t1 .pv-swatch:nth-child(3) { background: #d4c8b8; }
+
+    /* Template 2 — Modern Dark preview */
+    .preview-t2 { background: #0d0d0d; }
+    .preview-t2 .pv-nav {
+      height: 32px; background: rgba(13,13,13,0.9);
+      border-bottom: 1px solid #2a2a2a;
+      display: flex; align-items: center; padding: 0 12px; gap: 8px;
+    }
+    .preview-t2 .pv-brand {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 11px; color: #e8ff47; font-weight: 700; letter-spacing: 1px;
+    }
+    .preview-t2 .pv-hero {
+      height: 80px;
+      background: linear-gradient(135deg, #161616, #0d0d0d);
+      display: flex; align-items: flex-end; padding: 10px 12px;
+      position: relative; overflow: hidden;
+    }
+    .preview-t2 .pv-hero::after {
+      content: '03';
+      position: absolute; right: 8px; top: 4px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 40px; color: rgba(255,255,255,0.04);
+      font-weight: 700; line-height: 1;
+    }
+    .preview-t2 .pv-accent { color: #e8ff47; }
+    .preview-t2 .pv-hero-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 13px; color: #fff; font-weight: 700;
+      letter-spacing: 1px; line-height: 1.2;
+    }
+    .preview-t2 .pv-grid {
+      display: flex; gap: 3px; padding: 8px 12px;
+    }
+    .preview-t2 .pv-swatch {
+      flex: 1; height: 36px; border-radius: 3px;
+      background: #1c1c1c; border: 1px solid #2a2a2a;
+    }
+    .preview-t2 .pv-swatch:nth-child(2) { background: #222; flex: 2; }
+    .preview-t2 .pv-swatch:nth-child(3) { background: #1a1a1a; }
+    /* Accent bar on hover */
+    .preview-t2 .pv-swatch::after {
+      content: ''; display: block; height: 2px;
+      background: #e8ff47; transform: scaleX(0);
+      transform-origin: left; transition: transform .3s;
+    }
+    .template-card:hover .preview-t2 .pv-swatch::after { transform: scaleX(1); }
+
+    /* Card info section below preview */
+    .template-info {
+      padding: 20px 24px 24px;
+    }
+    .template-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px; font-weight: 400; color: var(--white);
+      margin-bottom: 4px;
+    }
+    .template-desc {
+      font-size: 13px; color: var(--mid); font-weight: 300;
+      line-height: 1.6; margin-bottom: 20px;
+    }
+    .template-tags {
+      display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px;
+    }
+    .template-tag {
+      font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+      color: var(--silver); background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 4px 10px; border-radius: 980px;
+    }
+    .template-actions { display: flex; gap: 10px; }
+    .btn-preview {
+      flex: 1; padding: 11px;
+      background: transparent; color: var(--silver);
+      font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500;
+      letter-spacing: .3px;
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 980px;
+      cursor: pointer; text-align: center; text-decoration: none;
+      transition: border-color .2s, color .2s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .btn-preview:hover { border-color: rgba(255,255,255,0.3); color: var(--white); }
+
+    .btn-select {
+      flex: 2; padding: 11px;
+      background: var(--white); color: var(--black);
+      font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500;
+      border: none; border-radius: 980px; cursor: pointer;
+      transition: background .2s, transform .15s;
+    }
+    .btn-select:hover { background: var(--off-white); transform: scale(1.01); }
+    .template-card.selected .btn-select {
+      background: var(--gold-line); color: var(--black);
+    }
+
+    /* Confirm bar — appears after selection */
+    .confirm-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: rgba(29,29,31,0.95);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding: 16px 48px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 20px; z-index: 400;
+      transform: translateY(100%);
+      transition: transform .35s cubic-bezier(0.25,0.46,0.45,0.94);
+    }
+    .confirm-bar.visible { transform: translateY(0); }
+    .confirm-bar-left {
+      font-size: 14px; font-weight: 300; color: var(--silver);
+    }
+    .confirm-bar-left strong { color: var(--white); font-weight: 500; }
+    .btn-confirm {
+      padding: 12px 36px;
+      background: var(--white); color: var(--black);
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+      border: none; border-radius: 980px; cursor: pointer;
+      transition: background .2s, transform .15s;
+      white-space: nowrap;
+    }
+    .btn-confirm:hover { background: var(--off-white); transform: scale(1.02); }
+
+    /* Progress steps reused from info.html */
+    .onboard-progress {
+      display: flex; align-items: center; gap: 0; margin-bottom: 48px;
+    }
+    .progress-step {
+      display: flex; flex-direction: column; align-items: center;
+      flex: 1; position: relative;
+    }
+    .progress-step:not(:last-child)::after {
+      content: ''; position: absolute; top: 16px; left: 50%; width: 100%;
+      height: 1px; background: rgba(255,255,255,0.08); z-index: 0;
+    }
+    .progress-dot {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Cormorant Garamond', serif; font-size: 14px; font-weight: 600;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: var(--space-mid); color: var(--mid);
+      position: relative; z-index: 1; transition: all .3s;
+    }
+    .progress-step.done .progress-dot {
+      background: rgba(94,204,123,0.15); border-color: rgba(94,204,123,0.4); color: var(--success);
+    }
+    .progress-step.active .progress-dot {
+      background: rgba(200,184,154,0.1); border-color: var(--gold-line); color: var(--gold-line);
+    }
+    .progress-label {
+      font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+      color: var(--mid); margin-top: 7px; text-align: center;
+    }
+    .progress-step.active .progress-label { color: var(--silver); }
+
+    /* Template 3 — Blue Horizon preview */
+    .preview-t3 { background: #04070f; }
+    .preview-t3 .pv-nav {
+      height: 32px; background: rgba(4,7,15,0.9);
+      border-bottom: 1px solid rgba(59,130,246,0.15);
+      display: flex; align-items: center; padding: 0 12px; gap: 8px;
+    }
+    .preview-t3 .pv-brand {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px; color: #fff; font-weight: 700; letter-spacing: 1px;
+    }
+    .preview-t3 .pv-brand .bd { color: #3b82f6; }
+    .preview-t3 .pv-hero {
+      height: 80px;
+      background: linear-gradient(135deg, rgba(59,130,246,0.12) 0%, #04070f 60%);
+      display: flex; align-items: flex-start; padding: 10px 12px; flex-direction: column; justify-content: center;
+      position: relative;
+    }
+    .preview-t3 .pv-tag {
+      font-size: 7px; letter-spacing: 1px; text-transform: uppercase;
+      color: #60a5fa; background: rgba(59,130,246,0.1);
+      border: 1px solid rgba(59,130,246,0.2); padding: 2px 7px; border-radius: 10px;
+      margin-bottom: 5px; display: inline-block;
+    }
+    .preview-t3 .pv-hero-text {
+      font-size: 13px; color: #fff; font-weight: 700; line-height: 1.2;
+    }
+    .preview-t3 .pv-blue { color: #3b82f6; }
+    .preview-t3 .pv-grid {
+      display: flex; gap: 3px; padding: 8px 12px;
+    }
+    .preview-t3 .pv-swatch {
+      flex: 1; height: 36px; border-radius: 3px;
+      background: #0c1424; border: 1px solid rgba(59,130,246,0.12);
+    }
+    .preview-t3 .pv-swatch:nth-child(2) { flex: 2; background: #080e1c; }
+    .preview-t3 .pv-swatch:nth-child(3) { background: #0c1424; }
+    .preview-t3 .pv-swatch::after {
+      content: ''; display: block; height: 2px;
+      background: #3b82f6; transform: scaleX(0);
+      transform-origin: left; transition: transform .3s;
+    }
+    .template-card:hover .preview-t3 .pv-swatch::after { transform: scaleX(1); }
+
+    @media (max-width: 900px) { .template-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 540px) { .template-grid { grid-template-columns: 1fr; } }
+      .template-grid { grid-template-columns: 1fr; }
+      .template-wrap { padding: 0 20px; }
+      .confirm-bar { padding: 16px 20px; flex-direction: column; gap: 12px; }
+      .btn-confirm { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<nav>
+  <a class="brand" href="/">Stone<em>Vista</em></a>
+  <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+  <div class="nav-links" id="nav-links">
+    <a href="/dashboard">Dashboard</a>
+    <a href="/logout">Sign Out</a>
+  </div>
+</nav>
+
+<!-- Hidden form — submitted when user confirms -->
+<form action="/selecttemp" method="POST" id="templateForm">
+  <input type="hidden" name="template" id="selectedTemplate">
+</form>
+
+<div class="page-body">
+  <div class="template-page">
+    <div class="template-wrap">
+
+      <!-- Page Header -->
+      <div class="info-page-header reveal">
+        <p class="section-label-sm">Step 4 of 4</p>
+        <div class="rule"></div>
+        <h1 class="info-page-title">Choose your<br><em>Shop Theme</em></h1>
+        <p class="info-page-sub">Select a design for your public store page. You can change this anytime from your dashboard.</p>
+      </div>
+
+      <!-- Progress -->
+      <div class="onboard-progress reveal">
+        <div class="progress-step done">
+          <div class="progress-dot">✓</div>
+          <span class="progress-label">Phone</span>
+        </div>
+        <div class="progress-step done">
+          <div class="progress-dot">✓</div>
+          <span class="progress-label">Account</span>
+        </div>
+        <div class="progress-step done">
+          <div class="progress-dot">✓</div>
+          <span class="progress-label">Shop Info</span>
+        </div>
+        <div class="progress-step active">
+          <div class="progress-dot">4</div>
+          <span class="progress-label">Template</span>
+        </div>
+      </div>
+
+      <!-- Template Cards Grid -->
+      <div class="template-grid">
+
+        <!-- ── TEMPLATE 1: Minimal Luxury ── -->
+        <div class="template-card reveal" id="card-template1"
+             onclick="selectTemplate('template1')">
+          <div class="selected-badge">Selected</div>
+
+          <!-- Mini preview -->
+          <div class="template-preview preview-t1">
+            <div class="pv-nav">
+              <span class="pv-brand">Stone<em>Vista</em></span>
+            </div>
+            <div class="pv-hero">
+              <div class="pv-hero-text">Your Shop Name<br><em>Crafted in Stone.</em></div>
+            </div>
+            <div class="pv-grid">
+              <div class="pv-swatch"></div>
+              <div class="pv-swatch"></div>
+              <div class="pv-swatch"></div>
+            </div>
+          </div>
+
+          <div class="template-info">
+            <h3 class="template-name">Minimal Luxury</h3>
+            <p class="template-desc">Warm cream tones, serif typography, and gold accents. Perfect for premium marble and Italian stone sellers.</p>
+            <div class="template-tags">
+              <span class="template-tag">Light</span>
+              <span class="template-tag">Elegant</span>
+              <span class="template-tag">Serif</span>
+            </div>
+            <div class="template-actions">
+              <a href="/preview_template/template1" target="_blank"
+                 class="btn-preview"
+                 onclick="event.stopPropagation()">Preview ↗</a>
+              <button type="button" class="btn-select"
+                      onclick="event.stopPropagation(); selectTemplate('template1')">
+                Select This
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── TEMPLATE 2: Modern Dark ── -->
+        <div class="template-card reveal" id="card-template2"
+             onclick="selectTemplate('template2')">
+          <div class="selected-badge">Selected</div>
+
+          <!-- Mini preview -->
+          <div class="template-preview preview-t2">
+            <div class="pv-nav">
+              <span class="pv-brand">STONE<span style="color:#e8ff47">VISTA</span></span>
+            </div>
+            <div class="pv-hero">
+              <div class="pv-hero-text">
+                YOUR SHOP<br>
+                <span class="pv-accent">PREMIUM</span> STONE
+              </div>
+            </div>
+            <div class="pv-grid">
+              <div class="pv-swatch"></div>
+              <div class="pv-swatch"></div>
+              <div class="pv-swatch"></div>
+            </div>
+          </div>
+
+          <div class="template-info">
+            <h3 class="template-name">Modern Dark</h3>
+            <p class="template-desc">Pure black canvas, bold Bebas Neue headlines, electric lime accents. Makes stone photography look dramatic.</p>
+            <div class="template-tags">
+              <span class="template-tag">Dark</span>
+              <span class="template-tag">Bold</span>
+              <span class="template-tag">Modern</span>
+            </div>
+            <div class="template-actions">
+              <a href="/preview_template/template2" target="_blank"
+                 class="btn-preview"
+                 onclick="event.stopPropagation()">Preview ↗</a>
+              <button type="button" class="btn-select"
+                      onclick="event.stopPropagation(); selectTemplate('template2')">
+                Select This
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── TEMPLATE 3: Blue Horizon ── -->
+        <div class="template-card reveal" id="card-template3"
+             onclick="selectTemplate('template3')">
+          <div class="selected-badge">Selected</div>
+
+          <div class="template-preview preview-t3">
+            <div class="pv-nav">
+              <span class="pv-brand">Shop Name<span class="bd">.</span></span>
+            </div>
+            <div class="pv-hero">
+              <div class="pv-tag">Premium Stone</div>
+              <div class="pv-hero-text">Stone &amp; <span class="pv-blue">Marble</span><br>Masters</div>
+            </div>
+            <div class="pv-grid">
+              <div class="pv-swatch"></div>
+              <div class="pv-swatch"></div>
+              <div class="pv-swatch"></div>
+            </div>
+          </div>
+
+          <div class="template-info">
+            <h3 class="template-name">Blue Horizon</h3>
+            <p class="template-desc">Deep navy background, electric blue accents, Syne typeface. Futuristic and premium — ideal for modern stone businesses.</p>
+            <div class="template-tags">
+              <span class="template-tag">Blue</span>
+              <span class="template-tag">Futuristic</span>
+              <span class="template-tag">Premium</span>
+            </div>
+            <div class="template-actions">
+              <a href="/preview_template/template3" target="_blank"
+                 class="btn-preview"
+                 onclick="event.stopPropagation()">Preview ↗</a>
+              <button type="button" class="btn-select"
+                      onclick="event.stopPropagation(); selectTemplate('template3')">
+                Select This
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <!-- end template-grid -->
+
+    </div>
+  </div>
+</div>
+
+<!-- Confirm bar slides up after selection -->
+<div class="confirm-bar" id="confirm-bar">
+  <div class="confirm-bar-left">
+    Template selected: <strong id="confirm-name">—</strong>
+  </div>
+  <button class="btn-confirm" onclick="confirmTemplate()">
+    Launch My Store →
+  </button>
+</div>
+
+<script>
+  /* ── Cursor ── */
+  const cursor = document.getElementById('cursor');
+  const ring   = document.getElementById('cursor-ring');
+  let mx=0, my=0, rx=0, ry=0;
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.transform = `translate(${mx}px,${my}px) translate(-50%,-50%)`;
+  });
+  (function animateRing() {
+    rx += (mx-rx)*.12; ry += (my-ry)*.12;
+    ring.style.transform = `translate(${rx}px,${ry}px) translate(-50%,-50%)`;
+    requestAnimationFrame(animateRing);
+  })();
+
+  /* ── Hamburger ── */
+  const ham = document.getElementById('hamburger');
+  const menu = document.getElementById('nav-links');
+  ham.addEventListener('click', () => { ham.classList.toggle('open'); menu.classList.toggle('open'); });
+  menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => { ham.classList.remove('open'); menu.classList.remove('open'); }));
+
+  /* ── Reveal ── */
+  const io = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 100);
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.reveal').forEach(r => io.observe(r));
+
+  /* ── Template selection ── */
+  const templateNames = {
+    template1: 'Minimal Luxury',
+    template2: 'Modern Dark',
+    template3: 'Blue Horizon'
+  };
+
+  let currentSelection = null;
+
+  function selectTemplate(name) {
+    // Remove selected from all cards
+    document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+
+    // Add to clicked card
+    const card = document.getElementById('card-' + name);
+    card.classList.add('selected');
+
+    // Update hidden input
+    document.getElementById('selectedTemplate').value = name;
+    currentSelection = name;
+
+    // Show confirm bar
+    document.getElementById('confirm-name').textContent = templateNames[name];
+    document.getElementById('confirm-bar').classList.add('visible');
+  }
+
+  function confirmTemplate() {
+    if (!currentSelection) return;
+    document.getElementById('templateForm').submit();
+  }
+</script>
+</body>
+</html>

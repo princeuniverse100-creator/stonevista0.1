@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>{{ seller.shop_name }}</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/stonevista.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #04070f;
+      --surface:   #080e1c;
+      --card:      #0c1424;
+      --border:    rgba(59,130,246,0.15);
+      --blue:      #3b82f6;
+      --blue-lt:   #60a5fa;
+      --blue-glow: rgba(59,130,246,0.3);
+      --blue-dim:  rgba(59,130,246,0.08);
+      --white:     #ffffff;
+      --grey:      #64748b;
+      --light:     #cbd5e1;
+      --cyan:      #06b6d4;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--white);
+      font-weight: 300;
+      overflow-x: hidden;
+    }
+
+    img { display: block; max-width: 100%; }
+    a   { text-decoration: none; color: inherit; }
+
+    /* ════════════════════════════════════
+       NAVBAR
+    ════════════════════════════════════ */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 48px;
+      background: rgba(4,7,15,0.8);
+      backdrop-filter: blur(24px) saturate(180%);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-brand {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem; font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--white);
+    }
+    .nav-brand .dot { color: var(--blue); }
+    .nav-links {
+      display: flex; gap: 40px; align-items: center;
+    }
+    .nav-links a {
+      font-size: 0.7rem; font-weight: 500;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--grey); transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--blue-lt); }
+    .nav-cta-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 9px 22px;
+      background: var(--blue);
+      color: var(--white) !important;
+      font-size: 0.7rem !important; font-weight: 600 !important;
+      letter-spacing: 0.1em !important;
+      border-radius: 6px;
+      transition: background 0.2s, box-shadow 0.2s !important;
+    }
+    .nav-cta-btn:hover {
+      background: var(--blue-lt) !important;
+      box-shadow: 0 0 24px var(--blue-glow) !important;
+      color: var(--white) !important;
+    }
+
+    /* ════════════════════════════════════
+       HERO
+    ════════════════════════════════════ */
+    .hero {
+      position: relative;
+      height: 100vh; min-height: 680px;
+      margin-top: 64px;
+      overflow: hidden;
+      display: flex; align-items: center;
+    }
+
+    /* Slideshow */
+    .slides { position: absolute; inset: 0; }
+    .slide { position: absolute; inset: 0; opacity: 0; transition: opacity 1.4s ease; }
+    .slide.active { opacity: 1; }
+    .slide img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.2) saturate(0.6); display: block; }
+    .slide-fallback {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 40% 50%, #0a1628 0%, #020408 100%);
+    }
+
+    /* Blue gradient overlay */
+    .hero-gradient {
+      position: absolute; inset: 0; z-index: 1;
+      background:
+        linear-gradient(135deg, rgba(59,130,246,0.12) 0%, transparent 60%),
+        linear-gradient(to bottom, transparent 40%, rgba(4,7,15,0.9) 100%);
+    }
+
+    /* Grid lines decoration */
+    .hero-grid {
+      position: absolute; inset: 0; z-index: 1;
+      background-image:
+        linear-gradient(rgba(59,130,246,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59,130,246,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse at 30% 50%, black 30%, transparent 70%);
+    }
+
+    /* Glowing orb */
+    .hero-orb {
+      position: absolute; z-index: 1;
+      width: 600px; height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 70%);
+      top: 50%; left: 5%; transform: translateY(-50%);
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative; z-index: 2;
+      padding: 0 80px;
+      max-width: 760px;
+    }
+
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 14px;
+      background: var(--blue-dim);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 0.65rem; font-weight: 500; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--blue-lt);
+      margin-bottom: 28px;
+      animation: fadeSlideUp 0.8s ease 0.2s both;
+    }
+    .hero-tag::before {
+      content: '';
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--blue);
+      animation: pulse 2s ease infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(1.5)} }
+
+    .hero-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(3rem, 7vw, 6.5rem);
+      font-weight: 800;
+      line-height: 0.95;
+      letter-spacing: -0.02em;
+      color: var(--white);
+      margin-bottom: 28px;
+      animation: fadeSlideUp 0.8s ease 0.4s both;
+    }
+    .hero-title .blue-word { color: var(--blue); }
+    .hero-title .outline-word {
+      color: transparent;
+      -webkit-text-stroke: 1.5px rgba(255,255,255,0.4);
+    }
+
+    .hero-sub {
+      font-size: 1rem; font-weight: 300;
+      color: var(--grey); line-height: 1.75;
+      max-width: 460px; margin-bottom: 44px;
+      animation: fadeSlideUp 0.8s ease 0.6s both;
+    }
+
+    .hero-actions {
+      display: flex; gap: 14px; flex-wrap: wrap;
+      animation: fadeSlideUp 0.8s ease 0.8s both;
+    }
+
+    .btn-blue {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 14px 32px;
+      background: var(--blue); color: var(--white);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.8rem; font-weight: 500; letter-spacing: 0.06em;
+      text-transform: uppercase; text-decoration: none;
+      border: none; border-radius: 8px; cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+    }
+    .btn-blue:hover {
+      background: var(--blue-lt);
+      box-shadow: 0 8px 32px var(--blue-glow);
+      transform: translateY(-2px);
+    }
+
+    .btn-outline-blue {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 13px 32px;
+      background: transparent; color: var(--light);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.8rem; font-weight: 400; letter-spacing: 0.06em;
+      text-transform: uppercase; text-decoration: none;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px; cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .btn-outline-blue:hover {
+      border-color: var(--blue);
+      background: var(--blue-dim);
+      color: var(--white);
+    }
+
+    /* Scroll indicator */
+    .hero-scroll {
+      position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+      z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 8px;
+      animation: fadeSlideUp 0.8s ease 1.2s both;
+    }
+    .hero-scroll span {
+      font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--grey);
+    }
+    .scroll-bar {
+      width: 1px; height: 48px;
+      background: linear-gradient(to bottom, var(--blue), transparent);
+      animation: scrollPulse 2s ease infinite;
+    }
+    @keyframes scrollPulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
+
+    /* Carousel dots - right side vertical */
+    .hero-dots {
+      position: absolute; right: 48px; top: 50%; transform: translateY(-50%);
+      z-index: 3;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .hdot {
+      width: 2px; height: 24px;
+      background: rgba(255,255,255,0.2);
+      border: none; cursor: pointer;
+      transition: background 0.3s, height 0.3s;
+    }
+    .hdot.active { background: var(--blue); height: 40px; }
+
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ════════════════════════════════════
+       STATS STRIP
+    ════════════════════════════════════ */
+    .stats-strip {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 0 80px;
+      display: flex; align-items: stretch;
+      overflow-x: auto;
+    }
+    .stat-item {
+      flex: 1; min-width: 160px;
+      padding: 32px 24px;
+      border-right: 1px solid var(--border);
+      display: flex; align-items: center; gap: 16px;
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-icon { font-size: 22px; flex-shrink: 0; }
+    .stat-text {}
+    .stat-val {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem; font-weight: 700;
+      color: var(--blue-lt); line-height: 1;
+    }
+    .stat-lbl {
+      font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--grey); margin-top: 4px;
+    }
+
+    /* ════════════════════════════════════
+       SECTION SHARED
+    ════════════════════════════════════ */
+    .section { padding: 100px 80px; }
+    .section-eyebrow {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-size: 0.65rem; font-weight: 500; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--blue);
+      margin-bottom: 16px;
+    }
+    .section-eyebrow::before {
+      content: ''; width: 20px; height: 1px; background: var(--blue);
+    }
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      font-weight: 700; line-height: 1.05;
+      letter-spacing: -0.02em; color: var(--white);
+      margin-bottom: 16px;
+    }
+    .section-title .accent { color: var(--blue); }
+    .section-sub {
+      font-size: 0.95rem; color: var(--grey); line-height: 1.7;
+      max-width: 520px; margin-bottom: 56px;
+    }
+
+    /* ════════════════════════════════════
+       ABOUT / TRUST
+    ════════════════════════════════════ */
+    .about-section {
+      padding: 100px 80px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      position: relative; overflow: hidden;
+    }
+    .about-section::before {
+      content: '';
+      position: absolute; top: -200px; right: -100px;
+      width: 500px; height: 500px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(59,130,246,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px; align-items: start;
+    }
+    .about-text p {
+      font-size: 0.95rem; color: var(--grey); line-height: 1.8;
+      margin-bottom: 16px;
+    }
+    .trust-grid-t3 {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    }
+    .trust-card-t3 {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px 20px;
+      position: relative; overflow: hidden;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+    .trust-card-t3::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(to right, var(--blue), transparent);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .trust-card-t3:hover { border-color: var(--blue); transform: translateY(-3px); }
+    .trust-card-t3:hover::before { opacity: 1; }
+    .trust-card-t3 .t-icon { font-size: 24px; margin-bottom: 12px; }
+    .trust-card-t3 .t-val {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.6rem; font-weight: 700; color: var(--blue-lt);
+      line-height: 1; margin-bottom: 6px;
+    }
+    .trust-card-t3 .t-lbl {
+      font-size: 0.65rem; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--grey);
+    }
+
+    /* ════════════════════════════════════
+       MARBLE COLLECTION
+    ════════════════════════════════════ */
+    .collection-section {
+      padding: 100px 80px;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+    }
+    .col-header-row {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      margin-bottom: 56px; gap: 32px; flex-wrap: wrap;
+    }
+    .col-count-badge {
+      font-family: 'Syne', sans-serif;
+      font-size: 5rem; font-weight: 800;
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(59,130,246,0.2);
+      line-height: 1; letter-spacing: -0.03em;
+    }
+
+    .marble-grid-t3 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 3px;
+    }
+    /* Wide card every 5th */
+    .marble-card-t3:nth-child(5n+1) { grid-column: span 2; }
+
+    .marble-card-t3 {
+      position: relative; overflow: hidden;
+      aspect-ratio: 1; cursor: pointer;
+      background: var(--card);
+      transition: transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94);
+    }
+    .marble-card-t3:nth-child(5n+1) { aspect-ratio: 2/1; }
+
+    .marble-card-t3 img {
+      width: 100%; height: 100%; object-fit: cover;
+      display: block;
+      transition: transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94), filter 0.4s;
+      filter: saturate(0.65) brightness(0.85);
+    }
+    .marble-card-t3:hover img {
+      transform: scale(1.08);
+      filter: saturate(1) brightness(1);
+    }
+
+    /* Blue shine on hover */
+    .marble-card-t3::before {
+      content: '';
+      position: absolute; inset: 0; z-index: 1;
+      background: linear-gradient(135deg, rgba(59,130,246,0.15) 0%, transparent 60%);
+      opacity: 0; transition: opacity 0.4s;
+    }
+    .marble-card-t3:hover::before { opacity: 1; }
+
+    /* Bottom info overlay */
+    .marble-card-t3-info {
+      position: absolute; bottom: 0; left: 0; right: 0; z-index: 2;
+      padding: 20px 18px 16px;
+      background: linear-gradient(to top, rgba(4,7,15,0.95) 0%, transparent 100%);
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94);
+    }
+    .marble-card-t3:hover .marble-card-t3-info { transform: translateY(0); }
+
+    .mc3-num {
+      font-size: 0.6rem; font-weight: 600; letter-spacing: 0.15em;
+      color: var(--blue); margin-bottom: 4px;
+    }
+    .mc3-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.95rem; font-weight: 600; color: var(--white);
+    }
+    .mc3-type {
+      font-size: 0.65rem; color: var(--grey); margin-top: 3px;
+      text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    /* Blue corner line */
+    .marble-card-t3::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; z-index: 3;
+      width: 0; height: 2px;
+      background: var(--blue);
+      transition: width 0.4s ease;
+    }
+    .marble-card-t3:hover::after { width: 100%; }
+
+    /* ════════════════════════════════════
+       REVIEWS
+    ════════════════════════════════════ */
+    .reviews-section-t3 {
+      padding: 100px 80px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+    }
+    .reviews-header-row {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      margin-bottom: 56px; gap: 32px; flex-wrap: wrap;
+    }
+    .avg-score {
+      display: flex; align-items: baseline; gap: 10px;
+    }
+    .avg-big {
+      font-family: 'Syne', sans-serif;
+      font-size: 4rem; font-weight: 800; color: var(--blue-lt);
+      line-height: 1;
+    }
+    .avg-max { font-size: 1.2rem; color: var(--grey); }
+    .avg-stars-t3 { color: var(--blue); font-size: 16px; letter-spacing: 3px; }
+    .avg-count-t3 { font-size: 0.75rem; color: var(--grey); margin-top: 4px; }
+
+    .reviews-grid-t3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px,1fr));
+      gap: 20px;
+    }
+    .review-card-t3 {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px;
+      position: relative; overflow: hidden;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+    .review-card-t3:hover { border-color: var(--blue); transform: translateY(-4px); }
+    .review-card-t3::after {
+      content: '"';
+      position: absolute; top: 16px; right: 20px;
+      font-family: 'Syne', sans-serif;
+      font-size: 5rem; font-weight: 800;
+      color: rgba(59,130,246,0.06); line-height: 1;
+      pointer-events: none;
+    }
+    .rv3-stars { color: var(--blue); font-size: 13px; letter-spacing: 2px; margin-bottom: 14px; }
+    .rv3-text {
+      font-size: 0.9rem; line-height: 1.75; color: var(--light);
+      margin-bottom: 20px; font-style: italic;
+    }
+    .rv3-divider {
+      width: 32px; height: 1px; background: var(--border); margin-bottom: 16px;
+    }
+    .rv3-author { display: flex; align-items: center; gap: 12px; }
+    .rv3-avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: var(--blue-dim); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700;
+      color: var(--blue-lt); flex-shrink: 0;
+    }
+    .rv3-name { font-size: 0.85rem; font-weight: 500; color: var(--white); }
+    .rv3-city { font-size: 0.72rem; color: var(--grey); margin-top: 2px; }
+    .rv3-badge {
+      margin-left: auto; flex-shrink: 0;
+      font-size: 0.6rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--cyan); background: rgba(6,182,212,0.08);
+      border: 1px solid rgba(6,182,212,0.2);
+      padding: 3px 10px; border-radius: 100px;
+    }
+
+    /* ════════════════════════════════════
+       PROJECTS
+    ════════════════════════════════════ */
+    .projects-section-t3 {
+      padding: 100px 80px;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+    }
+    .projects-grid-t3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .project-card-t3 {
+      position: relative; border-radius: 16px; overflow: hidden;
+      aspect-ratio: 4/3; cursor: pointer;
+      background: var(--card);
+      border: 1px solid var(--border);
+      transition: transform 0.4s, box-shadow 0.4s, border-color 0.3s;
+    }
+    .project-card-t3:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 24px 64px rgba(59,130,246,0.15);
+      border-color: var(--blue);
+    }
+    .project-card-t3 img { width:100%;height:100%;object-fit:cover;display:block;filter:brightness(.65);transition:filter .4s; }
+    .project-card-t3:hover img { filter: brightness(.85); }
+    .project-card-t3-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(4,7,15,0.95) 0%, transparent 50%);
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 22px;
+    }
+    .pct3-type {
+      font-size: 0.6rem; font-weight: 600; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--blue);
+      background: var(--blue-dim); border: 1px solid var(--border);
+      padding: 3px 10px; border-radius: 4px; display: inline-block;
+      margin-bottom: 8px; width: fit-content;
+    }
+    .pct3-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 600; color: var(--white); }
+    .pct3-loc { font-size: 0.72rem; color: var(--grey); margin-top: 4px; }
+
+    /* ════════════════════════════════════
+       CONTACT
+    ════════════════════════════════════ */
+    .contact-section-t3 {
+      padding: 100px 80px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      position: relative; overflow: hidden;
+    }
+    .contact-section-t3::before {
+      content: '';
+      position: absolute; bottom: -200px; left: -100px;
+      width: 500px; height: 500px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(59,130,246,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .contact-grid-t3 {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start;
+    }
+    .contact-info-block {
+      display: flex; align-items: flex-start; gap: 16px;
+      padding: 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px; margin-bottom: 14px;
+      transition: border-color 0.2s;
+    }
+    .contact-info-block:hover { border-color: var(--blue); }
+    .ci-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      background: var(--blue-dim); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .ci-label {
+      font-size: 0.6rem; font-weight: 500; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--grey); margin-bottom: 4px;
+    }
+    .ci-val { font-size: 0.9rem; color: var(--light); }
+
+    .contact-cta-stack { display: flex; flex-direction: column; gap: 12px; margin-top: 28px; }
+    .btn-cta-call {
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      padding: 15px 28px;
+      background: var(--blue); color: var(--white);
+      font-family: 'Inter', sans-serif; font-size: 0.82rem; font-weight: 500;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      text-decoration: none; border: none; border-radius: 10px; cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+    }
+    .btn-cta-call:hover {
+      background: var(--blue-lt);
+      box-shadow: 0 8px 32px var(--blue-glow);
+      transform: translateY(-2px);
+    }
+    .btn-cta-wa {
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      padding: 14px 28px;
+      background: transparent; color: #25D366;
+      font-family: 'Inter', sans-serif; font-size: 0.82rem; font-weight: 500;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      text-decoration: none; border: 1px solid rgba(37,211,102,0.3); border-radius: 10px;
+      cursor: pointer; transition: background 0.2s, border-color 0.2s, transform 0.15s;
+    }
+    .btn-cta-wa:hover {
+      background: rgba(37,211,102,0.08);
+      border-color: #25D366;
+      transform: translateY(-2px);
+    }
+    .btn-cta-wa svg, .btn-cta-call svg { width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; }
+
+    /* Map */
+    .contact-map-t3 {
+      border-radius: 16px; overflow: hidden;
+      border: 1px solid var(--border);
+      height: 300px; position: relative;
+      transition: border-color 0.3s;
+    }
+    .contact-map-t3:hover { border-color: var(--blue); }
+    .contact-map-t3 iframe { width: 100%; height: 100%; border: none; display: block; }
+    .map-placeholder-t3 {
+      width: 100%; height: 100%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 10px; background: var(--card); color: var(--grey); font-size: 13px;
+    }
+    .map-placeholder-t3 span { font-size: 36px; }
+    .gmaps-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 10px; font-size: 0.72rem; color: var(--blue);
+      letter-spacing: 0.06em;
+      transition: color 0.2s;
+    }
+    .gmaps-link:hover { color: var(--blue-lt); }
+
+    /* ════════════════════════════════════
+       FLOATING BUTTONS
+    ════════════════════════════════════ */
+    .float-btns-t3 {
+      position: fixed; bottom: 28px; right: 28px;
+      display: flex; flex-direction: column; gap: 10px; z-index: 500;
+    }
+    .float-btn-t3 {
+      width: 52px; height: 52px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; text-decoration: none; border: 1px solid transparent;
+      cursor: pointer; position: relative;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .float-btn-t3:hover { transform: scale(1.1) translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+    .fbt3-wa { background: #25D366; border-color: rgba(37,211,102,0.3); }
+    .fbt3-call { background: var(--blue); border-color: var(--blue-glow); }
+    .fbt3-call:hover { box-shadow: 0 8px 32px var(--blue-glow); }
+    .fbt3-tooltip {
+      position: absolute; right: 60px;
+      background: rgba(8,14,28,0.95); backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      color: var(--light); font-family: 'Inter', sans-serif;
+      font-size: 0.7rem; font-weight: 500; letter-spacing: 0.05em;
+      padding: 6px 12px; border-radius: 7px; white-space: nowrap;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .float-btn-t3:hover .fbt3-tooltip { opacity: 1; }
+
+    /* ════════════════════════════════════
+       FOOTER
+    ════════════════════════════════════ */
+    footer {
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      padding: 60px 80px 36px;
+    }
+    .footer-inner-t3 {
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 48px; padding-bottom: 48px;
+      border-bottom: 1px solid var(--border); margin-bottom: 28px;
+    }
+    .f3-brand {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem; font-weight: 800;
+      color: var(--white); margin-bottom: 12px;
+    }
+    .f3-brand .dot { color: var(--blue); }
+    .f3-tagline { font-size: 0.82rem; color: var(--grey); line-height: 1.7; max-width: 240px; }
+    .f3-col-title {
+      font-size: 0.6rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--blue); margin-bottom: 16px;
+    }
+    .f3-col p, .f3-col a {
+      display: block; font-size: 0.82rem; color: var(--grey);
+      line-height: 1.9; text-decoration: none;
+      transition: color 0.2s;
+    }
+    .f3-col a:hover { color: var(--blue-lt); }
+    .footer-bottom-t3 {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 0.7rem; color: var(--grey); flex-wrap: wrap; gap: 8px;
+    }
+    .footer-bottom-t3 span { display: flex; align-items: center; gap: 6px; }
+    .footer-blue-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--blue); display: inline-block; }
+
+    /* ════════════════════════════════════
+       RESPONSIVE
+    ════════════════════════════════════ */
+    @media (max-width: 1024px) {
+      .marble-grid-t3 { grid-template-columns: repeat(3,1fr); }
+      .marble-card-t3:nth-child(5n+1) { grid-column: span 1; aspect-ratio: 1; }
+      .footer-inner-t3 { grid-template-columns: 1fr 1fr; }
+      .about-grid { grid-template-columns: 1fr; gap: 48px; }
+    }
+    @media (max-width: 768px) {
+      nav { padding: 0 20px; }
+      .nav-links { display: none; }
+      .section, .about-section, .collection-section, .reviews-section-t3,
+      .projects-section-t3, .contact-section-t3 { padding: 72px 24px; }
+      .hero-content { padding: 0 24px; }
+      .hero-dots { display: none; }
+      .stats-strip { padding: 0 24px; }
+      .marble-grid-t3 { grid-template-columns: repeat(2,1fr); gap: 2px; }
+      .marble-card-t3:nth-child(5n+1) { grid-column: span 2; aspect-ratio: 2/1; }
+      .contact-grid-t3 { grid-template-columns: 1fr; gap: 40px; }
+      .projects-grid-t3 { grid-template-columns: repeat(2,1fr); }
+      .footer-inner-t3 { grid-template-columns: 1fr; gap: 32px; }
+      footer { padding: 48px 24px 28px; }
+      .trust-grid-t3 { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 480px) {
+      .marble-grid-t3 { grid-template-columns: 1fr; }
+      .marble-card-t3:nth-child(5n+1) { grid-column: span 1; aspect-ratio: 1; }
+      .projects-grid-t3 { grid-template-columns: 1fr; }
+      .trust-grid-t3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+  <a class="nav-brand" href="#">{{ seller.shop_name }}<span class="dot">.</span></a>
+  <div class="nav-links">
+    {% if seller.business_type or seller.years_experience %}
+    <a href="#about">About</a>
+    {% endif %}
+    <a href="#collection">Collection</a>
+    {% if reviews %}<a href="#reviews">Reviews</a>{% endif %}
+    {% if projects %}<a href="#projects">Projects</a>{% endif %}
+    <a href="#contact">Contact</a>
+    {% if user and user.phone %}
+    <a href="tel:{{ user.phone }}" class="nav-cta-btn">📞 Call Now</a>
+    {% endif %}
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="slides" id="slides">
+    {% if seller.shop_photos %}
+      {% for photo in seller.shop_photos.split(',') %}{% if photo %}
+      <div class="slide {% if loop.first %}active{% endif %}">
+        <img src="{{ url_for('uploaded_seller_file', filename=photo) }}" alt="{{ seller.shop_name }}">
+      </div>
+      {% endif %}{% endfor %}
+    {% else %}
+      <div class="slide active"><div class="slide-fallback"></div></div>
+    {% endif %}
+  </div>
+
+  <div class="hero-grid"></div>
+  <div class="hero-orb"></div>
+  <div class="hero-gradient"></div>
+
+  <div class="hero-dots" id="hdots"></div>
+
+  <div class="hero-content">
+    <div class="hero-tag">Premium Stone &amp; Marble</div>
+    <h1 class="hero-title">
+      {{ seller.shop_name }}<br>
+      <span class="blue-word">Stone</span> <span class="outline-word">Masters</span>
+    </h1>
+    {% if seller.description %}
+    <p class="hero-sub">{{ seller.description }}</p>
+    {% endif %}
+    <div class="hero-actions">
+      {% if user and user.phone %}
+      <a href="tel:{{ user.phone }}" class="btn-blue">📞 Call Shop</a>
+      {% endif %}
+      <a href="#collection" class="btn-outline-blue">Explore Collection ↓</a>
+    </div>
+  </div>
+
+  <div class="hero-scroll">
+    <div class="scroll-bar"></div>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<!-- STATS STRIP -->
+<div class="stats-strip" id="strip">
+  <div class="stat-item">
+    <div class="stat-icon">🪨</div>
+    <div class="stat-text">
+      <div class="stat-val">{{ marbles|length }}+</div>
+      <div class="stat-lbl">Stone Varieties</div>
+    </div>
+  </div>
+  {% if seller.years_experience %}
+  <div class="stat-item">
+    <div class="stat-icon">🏆</div>
+    <div class="stat-text">
+      <div class="stat-val">{{ seller.years_experience }}+</div>
+      <div class="stat-lbl">Years Experience</div>
+    </div>
+  </div>
+  {% endif %}
+  {% if reviews %}
+  <div class="stat-item">
+    <div class="stat-icon">⭐</div>
+    <div class="stat-text">
+      <div class="stat-val">{{ avg_rating }}</div>
+      <div class="stat-lbl">Avg Rating</div>
+    </div>
+  </div>
+  {% endif %}
+  {% if projects %}
+  <div class="stat-item">
+    <div class="stat-icon">🏛️</div>
+    <div class="stat-text">
+      <div class="stat-val">{{ projects|length }}</div>
+      <div class="stat-lbl">Projects Done</div>
+    </div>
+  </div>
+  {% endif %}
+  <div class="stat-item">
+    <div class="stat-icon">📍</div>
+    <div class="stat-text">
+      <div class="stat-val" style="font-size:0.95rem;">{{ seller.address.split(',')[-1].strip() if seller.address else 'India' }}</div>
+      <div class="stat-lbl">Location</div>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT / TRUST -->
+{% if seller.business_type or seller.years_experience or seller.bulk_available or seller.delivery_areas or seller.description %}
+<div class="about-section" id="about">
+  <div class="about-grid">
+    <div>
+      <p class="section-eyebrow">About Us</p>
+      <h2 class="section-title">Why Choose<br><span class="accent">{{ seller.shop_name }}</span></h2>
+      <p class="section-sub">{{ seller.description or 'A trusted name in natural stone and marble, delivering excellence with every installation.' }}</p>
+      {% if seller.delivery_areas %}
+      <p class="about-text" style="font-size:0.85rem;color:var(--grey);margin-top:16px;">
+        <span style="color:var(--blue-lt);">🚚 Delivery Areas:</span> {{ seller.delivery_areas }}
+      </p>
+      {% endif %}
+    </div>
+    <div class="trust-grid-t3">
+      {% if seller.years_experience %}
+      <div class="trust-card-t3">
+        <div class="t-icon">🏆</div>
+        <div class="t-val">{{ seller.years_experience }}+</div>
+        <div class="t-lbl">Years Experience</div>
+      </div>
+      {% endif %}
+      {% if seller.business_type %}
+      <div class="trust-card-t3">
+        <div class="t-icon">🏭</div>
+        <div class="t-val" style="font-size:1.1rem;">{{ seller.business_type }}</div>
+        <div class="t-lbl">Business Type</div>
+      </div>
+      {% endif %}
+      {% if seller.bulk_available %}
+      <div class="trust-card-t3">
+        <div class="t-icon">📦</div>
+        <div class="t-val" style="font-size:1.1rem;">Yes</div>
+        <div class="t-lbl">Bulk Orders</div>
+      </div>
+      {% endif %}
+      <div class="trust-card-t3">
+        <div class="t-icon">✅</div>
+        <div class="t-val" style="font-size:1rem;">Verified</div>
+        <div class="t-lbl">Seller</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- MARBLE COLLECTION -->
+<section class="collection-section" id="collection">
+  <div class="col-header-row">
+    <div>
+      <p class="section-eyebrow">Our Collection</p>
+      <h2 class="section-title">Stone &amp; Marble<br><span class="accent">Catalogue</span></h2>
+    </div>
+    <div class="col-count-badge">{{ '%02d' % (marbles|length) }}</div>
+  </div>
+
+  <div class="marble-grid-t3">
+    {% if marbles %}
+      {% for marble in marbles %}
+      {% set mname = marble.marble_name or (marble.filename | replace('.jpg','') | replace('.png','') | replace('_',' ') | title) %}
+      <div class="marble-card-t3" onclick="openMarbleModal(
+        '{{ mname }}',
+        '{{ url_for('uploaded_marble_file', filename=marble.filename) }}',
+        '{{ seller.whatsapp | replace('+','') | replace(' ','') if seller.whatsapp else '' }}',
+        '{{ marble.marble_type or '' }}',
+        '{{ marble.origin or '' }}',
+        '{{ marble.finish or '' }}',
+        '{{ marble.thickness or '' }}',
+        '{{ marble.available_sizes or '' }}',
+        '{{ marble.marble_desc or '' }}'
+      )">
+        <img src="{{ url_for('uploaded_marble_file', filename=marble.filename) }}" alt="{{ mname }}">
+        <div class="marble-card-t3-info">
+          <div class="mc3-num">{{ '%02d' % loop.index }}</div>
+          <div class="mc3-name">{{ mname }}</div>
+          {% if marble.marble_type %}<div class="mc3-type">{{ marble.marble_type }}</div>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p style="color:var(--grey); grid-column:1/-1; padding:40px 0; text-align:center;">No marble items added yet.</p>
+    {% endif %}
+  </div>
+</section>
+
+<!-- REVIEWS -->
+{% if reviews %}
+<section class="reviews-section-t3" id="reviews">
+  <div class="reviews-header-row">
+    <div>
+      <p class="section-eyebrow">Customer Reviews</p>
+      <h2 class="section-title">What Our<br><span class="accent">Clients Say</span></h2>
+    </div>
+    {% if avg_rating %}
+    <div>
+      <div class="avg-score">
+        <div class="avg-big">{{ avg_rating }}</div>
+        <div class="avg-max">/5</div>
+      </div>
+      <div class="avg-stars-t3">{% for i in range(avg_rating|int) %}★{% endfor %}{% if avg_rating % 1 >= 0.5 %}★{% endif %}</div>
+      <div class="avg-count-t3">{{ reviews|length }} verified review{% if reviews|length != 1 %}s{% endif %}</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="reviews-grid-t3">
+    {% for review in reviews %}
+    <div class="review-card-t3">
+      <div class="rv3-stars">{{ '★' * review.rating }}{{ '☆' * (5 - review.rating) }}</div>
+      {% if review.review_text %}<p class="rv3-text">"{{ review.review_text }}"</p>{% endif %}
+      <div class="rv3-divider"></div>
+      <div class="rv3-author">
+        <div class="rv3-avatar">{{ review.reviewer_name[0] | upper }}</div>
+        <div>
+          <div class="rv3-name">{{ review.reviewer_name }}</div>
+          {% if review.reviewer_city %}<div class="rv3-city">{{ review.reviewer_city }}</div>{% endif %}
+        </div>
+        {% if review.verified_buyer %}<span class="rv3-badge">✓ Verified</span>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<!-- PROJECTS -->
+{% if projects %}
+<section class="projects-section-t3" id="projects">
+  <p class="section-eyebrow">Our Work</p>
+  <h2 class="section-title" style="margin-bottom:56px;">Completed <span class="accent">Projects</span></h2>
+  <div class="projects-grid-t3">
+    {% for project in projects %}
+    <div class="project-card-t3">
+      {% if project.project_image %}
+      <img src="{{ url_for('uploaded_project_file', filename=project.project_image) }}" alt="{{ project.project_title }}">
+      {% else %}
+      <div style="width:100%;height:100%;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:48px;">🏛️</div>
+      {% endif %}
+      <div class="project-card-t3-overlay">
+        {% if project.project_type %}<span class="pct3-type">{{ project.project_type }}</span>{% endif %}
+        <div class="pct3-title">{{ project.project_title }}</div>
+        {% if project.project_location %}<div class="pct3-loc">📍 {{ project.project_location }}</div>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<!-- CONTACT -->
+<section class="contact-section-t3" id="contact">
+  <p class="section-eyebrow">Get In Touch</p>
+  <h2 class="section-title" style="margin-bottom:56px;">Contact <span class="accent">Us</span></h2>
+
+  <div class="contact-grid-t3">
+    <!-- Left: info + CTAs -->
+    <div>
+      {% if user and user.phone %}
+      <div class="contact-info-block">
+        <div class="ci-icon">📞</div>
+        <div>
+          <div class="ci-label">Phone</div>
+          <div class="ci-val">{{ user.phone }}</div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if seller.whatsapp %}
+      <div class="contact-info-block">
+        <div class="ci-icon">💬</div>
+        <div>
+          <div class="ci-label">WhatsApp</div>
+          <div class="ci-val">{{ seller.whatsapp }}</div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if seller.address %}
+      <div class="contact-info-block">
+        <div class="ci-icon">📍</div>
+        <div>
+          <div class="ci-label">Address</div>
+          <div class="ci-val">{{ seller.address }}</div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if seller.email %}
+      <div class="contact-info-block">
+        <div class="ci-icon">✉️</div>
+        <div>
+          <div class="ci-label">Email</div>
+          <div class="ci-val">{{ seller.email }}</div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="contact-cta-stack">
+        {% if user and user.phone %}
+        <a href="tel:{{ user.phone }}" class="btn-cta-call">
+          📞 Call Now
+        </a>
+        {% endif %}
+        {% if seller.whatsapp %}
+        <a href="https://wa.me/{{ seller.whatsapp | replace('+','') | replace(' ','') }}?text={{ ('Hello! I found your shop on StoneVista and would like to enquire about your stone collection.')|urlencode }}"
+           target="_blank" class="btn-cta-wa">
+          <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.553 4.112 1.522 5.836L.057 23.743a.5.5 0 0 0 .612.612l5.915-1.465A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 0 1-5.034-1.386l-.36-.214-3.733.924.944-3.712-.235-.38A9.808 9.808 0 0 1 2.182 12C2.182 6.56 6.56 2.182 12 2.182S21.818 6.56 21.818 12 17.44 21.818 12 21.818z"/></svg>
+          Chat on WhatsApp
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Right: map -->
+    <div>
+      <div class="contact-map-t3">
+        {% if seller.latitude and seller.longitude %}
+          <iframe
+            src="https://www.openstreetmap.org/export/embed.html?bbox={{ (seller.longitude|float - 0.01)|round(4) }},{{ (seller.latitude|float - 0.01)|round(4) }},{{ (seller.longitude|float + 0.01)|round(4) }},{{ (seller.latitude|float + 0.01)|round(4) }}&layer=mapnik&marker={{ seller.latitude }},{{ seller.longitude }}"
+            allowfullscreen loading="lazy">
+          </iframe>
+        {% elif seller.maps_link %}
+          <div class="map-placeholder-t3">
+            <span>📍</span>
+            <a href="{{ seller.maps_link }}" target="_blank" style="color:var(--blue); text-decoration:underline; font-size:13px;">Open in Google Maps</a>
+          </div>
+        {% else %}
+          <div class="map-placeholder-t3">
+            <span>📍</span>
+            <p>{{ seller.address or 'Location not set' }}</p>
+          </div>
+        {% endif %}
+      </div>
+      {% if seller.maps_link %}
+      <a href="{{ seller.maps_link }}" target="_blank" class="gmaps-link">
+        ↗ Open in Google Maps
+      </a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<!-- FLOATING BUTTONS -->
+<div class="float-btns-t3">
+  {% if seller.whatsapp %}
+  <a href="https://wa.me/{{ seller.whatsapp | replace('+','') | replace(' ','') }}?text={{ ('Hello! I would like to enquire about your stone collection.')|urlencode }}"
+     target="_blank" class="float-btn-t3 fbt3-wa">
+    <span class="fbt3-tooltip">WhatsApp Chat</span>
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.553 4.112 1.522 5.836L.057 23.743a.5.5 0 0 0 .612.612l5.915-1.465A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 0 1-5.034-1.386l-.36-.214-3.733.924.944-3.712-.235-.38A9.808 9.808 0 0 1 2.182 12C2.182 6.56 6.56 2.182 12 2.182S21.818 6.56 21.818 12 17.44 21.818 12 21.818z"/></svg>
+  </a>
+  {% endif %}
+  {% if user and user.phone %}
+  <a href="tel:{{ user.phone }}" class="float-btn-t3 fbt3-call">
+    <span class="fbt3-tooltip">Call Seller</span>
+    📞
+  </a>
+  {% endif %}
+</div>
+
+<!-- FOOTER -->
+<footer id="footer">
+  <div class="footer-inner-t3">
+    <div>
+      <div class="f3-brand">{{ seller.shop_name }}<span class="dot">.</span></div>
+      <p class="f3-tagline">{{ seller.description or 'Premium natural stone and marble for discerning spaces.' }}</p>
+    </div>
+    <div class="f3-col">
+      <p class="f3-col-title">Contact</p>
+      {% if user and user.phone %}<a href="tel:{{ user.phone }}">{{ user.phone }}</a>{% endif %}
+      {% if seller.whatsapp %}<a href="https://wa.me/{{ seller.whatsapp | replace('+','') | replace(' ','') }}" target="_blank">{{ seller.whatsapp }}</a>{% endif %}
+      {% if seller.email %}<a href="mailto:{{ seller.email }}">{{ seller.email }}</a>{% endif %}
+    </div>
+    <div class="f3-col">
+      <p class="f3-col-title">Navigate</p>
+      <a href="#collection">Collection</a>
+      {% if reviews %}<a href="#reviews">Reviews</a>{% endif %}
+      {% if projects %}<a href="#projects">Projects</a>{% endif %}
+      <a href="#contact">Contact</a>
+    </div>
+    <div class="f3-col">
+      <p class="f3-col-title">Location</p>
+      <p>{{ seller.address or '—' }}</p>
+      {% if seller.maps_link %}
+      <a href="{{ seller.maps_link }}" target="_blank" style="color:var(--blue); margin-top:8px;">↗ View on Map</a>
+      {% endif %}
+    </div>
+  </div>
+  <div class="footer-bottom-t3">
+    <span>&copy; {{ seller.shop_name }}</span>
+    <span><span class="footer-blue-dot"></span> Powered by StoneVista</span>
+  </div>
+</footer>
+
+<!-- MARBLE DETAIL MODAL (reuses stonevista.css .mmodal-* classes) -->
+<div class="mmodal-backdrop" id="mmodal-backdrop" onclick="closeModal(event)">
+  <div class="mmodal" id="mmodal" style="background:#080e1c; border-color:rgba(59,130,246,0.2);">
+    <button class="mmodal-close" onclick="closeMarbleModal()"
+            style="background:rgba(59,130,246,0.1); border-color:rgba(59,130,246,0.2);">✕</button>
+    <img class="mmodal-img" id="mmodal-img" src="" alt="">
+    <div class="mmodal-body">
+      <h2 class="mmodal-name" id="mmodal-name" style="font-family:'Syne',sans-serif; font-weight:700;"></h2>
+      <p class="mmodal-sub" id="mmodal-sub" style="color:rgba(59,130,246,0.7);"></p>
+      <div id="mmodal-specs" style="display:grid;grid-template-columns:1fr 1fr;gap:10px 24px;margin-bottom:18px;"></div>
+      <p class="mmodal-desc" id="mmodal-desc"></p>
+      <a class="btn-wa" id="mmodal-wa" href="#" target="_blank">
+        <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.553 4.112 1.522 5.836L.057 23.743a.5.5 0 0 0 .612.612l5.915-1.465A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 0 1-5.034-1.386l-.36-.214-3.733.924.944-3.712-.235-.38A9.808 9.808 0 0 1 2.182 12C2.182 6.56 6.56 2.182 12 2.182S21.818 6.56 21.818 12 17.44 21.818 12 21.818z"/></svg>
+        Enquire on WhatsApp
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ── Carousel ── */
+  const slides = document.querySelectorAll('.slide');
+  const dotsEl = document.getElementById('hdots');
+  let cur = 0;
+  if (slides.length > 1) {
+    slides.forEach((_, i) => {
+      const d = document.createElement('button');
+      d.className = 'hdot' + (i === 0 ? ' active' : '');
+      d.onclick = () => goTo(i);
+      dotsEl.appendChild(d);
+    });
+    function goTo(n) {
+      slides[cur].classList.remove('active');
+      dotsEl.children[cur].classList.remove('active');
+      cur = (n + slides.length) % slides.length;
+      slides[cur].classList.add('active');
+      dotsEl.children[cur].classList.add('active');
+    }
+    setInterval(() => goTo(cur + 1), 5000);
+  }
+
+  /* ── Marble card scroll reveal ── */
+  const cards = document.querySelectorAll('.marble-card-t3');
+  const io = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => {
+          e.target.style.opacity = '1';
+          e.target.style.transform = 'scale(1) translateY(0)';
+        }, i * 50);
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.05 });
+  cards.forEach(c => {
+    c.style.opacity = '0';
+    c.style.transform = 'scale(0.96) translateY(12px)';
+    c.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    io.observe(c);
+  });
+
+  /* ── Scroll reveal for sections ── */
+  const revealEls = document.querySelectorAll('.about-section, .reviews-section-t3, .projects-section-t3, .review-card-t3, .project-card-t3, .trust-card-t3, .contact-info-block');
+  const revealIO = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => {
+          e.target.style.opacity = '1';
+          e.target.style.transform = 'translateY(0)';
+        }, i * 60);
+        revealIO.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.08 });
+  revealEls.forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    revealIO.observe(el);
+  });
+
+  /* ── Marble Modal ── */
+  function openMarbleModal(name, imgSrc, waNum, type, origin, finish, thickness, sizes, desc) {
+    document.getElementById('mmodal-img').src = imgSrc;
+    document.getElementById('mmodal-img').alt = name;
+    document.getElementById('mmodal-name').textContent = name;
+
+    const sub = [type, origin].filter(Boolean).join(' · ');
+    document.getElementById('mmodal-sub').textContent = sub || 'Natural Stone · Premium Quality';
+
+    const specs = [];
+    if (finish)    specs.push(['Finish', finish]);
+    if (thickness) specs.push(['Thickness', thickness]);
+    if (sizes)     specs.push(['Sizes', sizes]);
+    if (type)      specs.push(['Type', type]);
+    const specsEl = document.getElementById('mmodal-specs');
+    specsEl.innerHTML = specs.map(([k,v]) =>
+      `<div><div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(59,130,246,0.6);margin-bottom:3px;">${k}</div><div style="font-size:13px;color:#cbd5e1;">${v}</div></div>`
+    ).join('');
+    specsEl.style.display = specs.length ? 'grid' : 'none';
+
+    document.getElementById('mmodal-desc').textContent = desc ||
+      'A premium natural stone from our collection. Each slab is unique with natural variations. Contact us for pricing and availability.';
+
+    const msg = encodeURIComponent(`Hello! I am interested in *${name}*. Please provide more details about pricing and availability.`);
+    const waBtn = document.getElementById('mmodal-wa');
+    if (waNum) { waBtn.href = `https://wa.me/${waNum}?text=${msg}`; waBtn.style.display = 'flex'; }
+    else { waBtn.style.display = 'none'; }
+
+    document.getElementById('mmodal-backdrop').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeMarbleModal() {
+    document.getElementById('mmodal-backdrop').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  function closeModal(e) {
+    if (e.target === document.getElementById('mmodal-backdrop')) closeMarbleModal();
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMarbleModal(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Shop Setup — StoneVista</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/hero.css">
+  <link rel="stylesheet" href="/static/stonevista.css">
+  <style>
+    /* local overrides for info page only */
+    .marble-item label  { display: block; cursor: pointer; height: 100%; }
+    .marble-item input[type="checkbox"] {
+      position: absolute; top: 10px; right: 10px;
+      width: 18px; height: 18px; accent-color: var(--gold-line); cursor: pointer; z-index: 2;
+    }
+    .marble-item input[type="checkbox"]:checked ~ .marble-check-overlay { opacity: 1; }
+    .marble-check-overlay {
+      position: absolute; inset: 0; background: rgba(200,184,154,0.08);
+      border-radius: inherit; opacity: 0; pointer-events: none; transition: opacity .2s;
+    }
+  </style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<nav>
+  <a class="brand" href="/">Stone<em>Vista</em></a>
+  <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+  <div class="nav-links" id="nav-links">
+    <a href="/dashboard">Dashboard</a>
+    <a href="/logout">Sign Out</a>
+  </div>
+</nav>
+
+<div class="page-body">
+  <div class="info-page">
+    <div class="info-wrap">
+
+      <!-- Page Header -->
+      <div class="info-page-header reveal">
+        <p class="section-label-sm">Step 3 of 4</p>
+        <div class="rule"></div>
+        <h1 class="info-page-title">Set up your<br><em>Stone Shop</em></h1>
+        <p class="info-page-sub">Tell customers who you are, where you are, and what stones you carry.</p>
+      </div>
+
+      <!-- Progress Steps -->
+      <div class="onboard-progress reveal">
+        <div class="progress-step done">
+          <div class="progress-dot">✓</div>
+          <span class="progress-label">Phone</span>
+        </div>
+        <div class="progress-step done">
+          <div class="progress-dot">✓</div>
+          <span class="progress-label">Account</span>
+        </div>
+        <div class="progress-step active">
+          <div class="progress-dot">3</div>
+          <span class="progress-label">Shop Info</span>
+        </div>
+        <div class="progress-step">
+          <div class="progress-dot">4</div>
+          <span class="progress-label">Template</span>
+        </div>
+      </div>
+
+      <form action="/info" method="POST" enctype="multipart/form-data" id="infoForm">
+
+        <!-- ── BLOCK 1: Shop Details ── -->
+        <div class="info-block reveal">
+          <h2 class="info-block-title">Shop Details</h2>
+          <p class="info-block-sub">Basic information that appears on your public page.</p>
+
+          <div class="field-group">
+            <label class="field-label" for="shopn">Shop Display Name</label>
+            <input type="text" class="field-input" id="shopn" name="shopn"
+                   placeholder="e.g. Sharma Marble Works" required>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="description">Shop Description</label>
+            <textarea class="field-input" id="description" name="description" rows="4"
+                      placeholder="Tell customers about your business, your speciality stones, years of experience..."
+                      maxlength="400"
+                      style="resize:vertical; line-height:1.6;"
+                      oninput="document.getElementById('dc').textContent=this.value.length"></textarea>
+            <div class="field-footer">
+              <span></span>
+              <span class="char-count"><span id="dc">0</span> / 400</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── BLOCK 2: Location (Map Picker) ── -->
+        <div class="info-block reveal">
+          <h2 class="info-block-title">Shop Location</h2>
+          <p class="info-block-sub">Search for your address or click on the map to set your exact location. This appears in the Contact section of your store page.</p>
+
+          <!-- Search bar -->
+          <div class="map-search-row">
+            <input type="text" class="field-input" id="map-search"
+                   placeholder="Search your address e.g. Johari Bazaar, Jaipur">
+            <button type="button" class="btn-map-search" onclick="searchAddress()">
+              Search
+            </button>
+          </div>
+
+          <!-- Map embed — uses OpenStreetMap via iframe for zero API key requirement -->
+          <div class="map-picker-wrap">
+            <div id="map" style="width:100%; height:300px; border-radius:13px; overflow:hidden; position:relative; background:#1a1a1a;">
+              <!-- Leaflet map renders here -->
+            </div>
+          </div>
+          <p class="map-hint">📍 Click anywhere on the map to drop a pin at your exact location.</p>
+
+          <!-- Hidden fields sent with form -->
+          <div class="map-coords-row">
+            <input type="text" class="field-input" id="lat-display" placeholder="Latitude" readonly
+                   style="color:var(--silver); font-size:12px;">
+            <input type="text" class="field-input" id="lng-display" placeholder="Longitude" readonly
+                   style="color:var(--silver); font-size:12px;">
+          </div>
+
+          <!-- These hidden fields go to Flask -->
+          <input type="hidden" name="latitude"  id="latitude"  value="">
+          <input type="hidden" name="longitude" id="longitude" value="">
+          <input type="hidden" name="maps_link" id="maps_link" value="">
+
+          <!-- Fallback text address (auto-filled by reverse geocode, editable) -->
+          <div class="field-group" style="margin-top:16px;">
+            <label class="field-label" for="address">Address Text <span style="color:var(--mid);font-weight:300;">(auto-filled from map, or type manually)</span></label>
+            <textarea class="field-input" id="address" name="address" rows="2"
+                      placeholder="Will be filled automatically when you pick on the map..."
+                      style="resize:vertical; line-height:1.6;"></textarea>
+          </div>
+        </div>
+
+        <!-- ── BLOCK 3: Contact Numbers ── -->
+        <div class="info-block reveal">
+          <h2 class="info-block-title">Contact Numbers</h2>
+          <p class="info-block-sub">These appear as Call and WhatsApp buttons on your public store page.</p>
+
+          <!-- ── Phone (from user account — verified) ── -->
+          <div class="field-group">
+            <label class="field-label">Phone Number</label>
+            <input type="text" class="field-input"
+                   value="{{ user.phone }}" readonly
+                   style="color:var(--silver); cursor:default;">
+            <small style="font-size:11px; color:var(--mid); margin-top:6px; display:block;">
+              This is your verified phone number. It will show as a Call button on your store.
+            </small>
+            <!-- Pass it to Flask as hidden field -->
+            <input type="hidden" name="phone" value="{{ user.phone }}">
+          </div>
+
+          <!-- ── WhatsApp Number ── -->
+          <div class="field-group">
+            <label class="field-label" for="whatsapp">WhatsApp Number</label>
+            <div class="field-wa-wrap">
+              <span class="field-wa-prefix">💬</span>
+              <input type="tel" class="field-input" id="whatsapp" name="whatsapp"
+                     placeholder="+91 98765 43210"
+                     style="padding-left:44px;">
+            </div>
+            <small style="font-size:11px; color:var(--mid); margin-top:6px; display:block;">
+              Include country code. Customers click this to send you a WhatsApp message directly.
+            </small>
+          </div>
+        </div>
+
+        <!-- ── BLOCK 4: Shop Photos ── -->
+        <div class="info-block reveal">
+          <h2 class="info-block-title">Shop Photos</h2>
+          <p class="info-block-sub">Upload photos of your showroom or stone collection. You can add multiple images.</p>
+
+          <div class="drop-zone" id="drop-zone">
+            <input type="file" name="shop_photos" id="photo-input"
+                   multiple accept="image/*"
+                   onchange="previewPhotos(this)">
+            <div class="drop-icon">📷</div>
+            <p class="drop-title">Click to upload or drag photos here</p>
+            <p class="drop-sub">JPG, PNG, WEBP — up to 5 photos</p>
+            <p class="drop-hint" id="drop-hint">No files selected</p>
+          </div>
+          <div class="photo-previews" id="photo-previews"></div>
+        </div>
+
+        <!-- ── BLOCK 5: Marble Selection ── -->
+        <div class="info-block reveal">
+          <h2 class="info-block-title">Stone Collection</h2>
+          <p class="info-block-sub">Select the types of stone you carry. These appear as your product gallery.</p>
+
+          <p class="selection-count">
+            Selected: <strong id="sel-count">0</strong> stones
+          </p>
+
+          <div class="marble-grid">
+            {% for marble in marbles %}
+            <div class="marble-item" id="mi-{{ marble.id }}"
+                 onclick="toggleMarble({{ marble.id }})">
+              <img src="{{ url_for('uploaded_marble_file', filename=marble.filename) }}"
+                   alt="{{ marble.filename }}">
+              <div class="marble-check-overlay"></div>
+              <input type="checkbox"
+                     name="selected_marbles"
+                     id="cb-{{ marble.id }}"
+                     value="{{ marble.id }}"
+                     onclick="event.stopPropagation();"
+                     onchange="updateSelCount()">
+              <div class="marble-label">
+                {{ marble.filename | replace('.jpg','') | replace('.png','') | replace('_',' ') | title }}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+
+          {% if not marbles %}
+          <p style="color:var(--mid); font-size:14px; text-align:center; padding:40px 0;">
+            No stone samples added yet. Contact admin to add marble images.
+          </p>
+          {% endif %}
+        </div>
+
+        <!-- ── ACTION BAR ── -->
+        <div class="info-action-bar reveal">
+          <a href="/dashboard" class="btn-info-cancel">Cancel</a>
+          <button type="submit" class="btn-info-submit">
+            Continue to Templates →
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Leaflet CSS + JS (free, no API key needed) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+  /* ── Cursor ── */
+  const cursor = document.getElementById('cursor');
+  const ring   = document.getElementById('cursor-ring');
+  let mx=0, my=0, rx=0, ry=0;
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.transform = `translate(${mx}px,${my}px) translate(-50%,-50%)`;
+  });
+  (function ar() { rx+=(mx-rx)*.12; ry+=(my-ry)*.12; ring.style.transform=`translate(${rx}px,${ry}px) translate(-50%,-50%)`; requestAnimationFrame(ar); })();
+
+  /* ── Hamburger ── */
+  const ham = document.getElementById('hamburger');
+  const menu = document.getElementById('nav-links');
+  ham.addEventListener('click', () => { ham.classList.toggle('open'); menu.classList.toggle('open'); });
+  menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => { ham.classList.remove('open'); menu.classList.remove('open'); }));
+
+  /* ── Reveal ── */
+  const io = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => { if (e.isIntersecting) { setTimeout(() => e.target.classList.add('visible'), i * 80); io.unobserve(e.target); } });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.reveal').forEach(r => io.observe(r));
+
+  /* ── Char counter ── */
+  const descEl = document.getElementById('description');
+  if (descEl) document.getElementById('dc').textContent = descEl.value.length;
+
+  /* ── Photo preview ── */
+  function previewPhotos(input) {
+    const prev = document.getElementById('photo-previews');
+    const hint = document.getElementById('drop-hint');
+    prev.innerHTML = '';
+    const files = Array.from(input.files).slice(0, 5);
+    hint.textContent = files.length ? `${files.length} file${files.length > 1 ? 's' : ''} selected` : 'No files selected';
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        img.className = 'photo-thumb';
+        prev.appendChild(img);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  /* ── Drag & drop ── */
+  const dropZone = document.getElementById('drop-zone');
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault(); dropZone.classList.remove('dragover');
+    const input = document.getElementById('photo-input');
+    input.files = e.dataTransfer.files;
+    previewPhotos(input);
+  });
+
+  /* ── Marble toggle ── */
+  function toggleMarble(id) {
+    const item = document.getElementById('mi-' + id);
+    const cb   = document.getElementById('cb-' + id);
+    cb.checked = !cb.checked;
+    item.classList.toggle('selected', cb.checked);
+    updateSelCount();
+  }
+  function updateSelCount() {
+    document.getElementById('sel-count').textContent =
+      document.querySelectorAll('.marble-item input:checked').length;
+  }
+  document.querySelectorAll('.marble-item input[type=checkbox]').forEach(cb => {
+    if (cb.checked) document.getElementById('mi-' + cb.value).classList.add('selected');
+  });
+  updateSelCount();
+
+  /* ══════════════════════════════════════════════
+     MAP PICKER — Leaflet.js (OpenStreetMap)
+     No API key required.
+  ══════════════════════════════════════════════ */
+  let map, marker;
+
+  // Default center: Jaipur, Rajasthan (common marble hub)
+  const DEFAULT_LAT = 26.9124;
+  const DEFAULT_LNG = 75.7873;
+
+  // Init map after Leaflet loads
+  window.addEventListener('load', () => {
+    map = L.map('map', { zoomControl: true }).setView([DEFAULT_LAT, DEFAULT_LNG], 13);
+
+    // OpenStreetMap tile layer — free, no key
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 19
+    }).addTo(map);
+
+    // Custom gold marker icon
+    const goldIcon = L.divIcon({
+      html: '<div style="width:18px;height:18px;background:#c8b89a;border:2px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.4);"></div>',
+      iconSize: [18, 18], iconAnchor: [9, 9], className: ''
+    });
+
+    // Click on map → drop pin
+    map.on('click', function(e) {
+      placeMarker(e.latlng.lat, e.latlng.lng, goldIcon);
+    });
+  });
+
+  function placeMarker(lat, lng, icon) {
+    if (marker) map.removeLayer(marker);
+    if (!icon) {
+      icon = L.divIcon({
+        html: '<div style="width:18px;height:18px;background:#c8b89a;border:2px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.4);"></div>',
+        iconSize: [18,18], iconAnchor: [9,9], className: ''
+      });
+    }
+    marker = L.marker([lat, lng], { icon }).addTo(map);
+
+    // Update visible coord fields
+    document.getElementById('lat-display').value = lat.toFixed(6);
+    document.getElementById('lng-display').value = lng.toFixed(6);
+
+    // Update hidden form fields
+    document.getElementById('latitude').value  = lat.toFixed(6);
+    document.getElementById('longitude').value = lng.toFixed(6);
+
+    // Build a Google Maps link for the seller's public page
+    const mapsLink = `https://www.google.com/maps?q=${lat.toFixed(6)},${lng.toFixed(6)}`;
+    document.getElementById('maps_link').value = mapsLink;
+
+    // Reverse geocode with Nominatim (free, no key)
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data && data.display_name) {
+          document.getElementById('address').value = data.display_name;
+        }
+      })
+      .catch(() => {});  // silently ignore network errors
+  }
+
+  // Search address using Nominatim
+  function searchAddress() {
+    const q = document.getElementById('map-search').value.trim();
+    if (!q) return;
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`)
+      .then(r => r.json())
+      .then(data => {
+        if (data && data.length > 0) {
+          const lat = parseFloat(data[0].lat);
+          const lng = parseFloat(data[0].lon);
+          map.setView([lat, lng], 16);
+          placeMarker(lat, lng);
+        } else {
+          alert('Address not found. Try a more specific search.');
+        }
+      })
+      .catch(() => alert('Search failed. Please check your connection.'));
+  }
+
+  // Allow pressing Enter in search box
+  document.getElementById('map-search').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); searchAddress(); }
+  });
+</script>
+</body>
+</html>

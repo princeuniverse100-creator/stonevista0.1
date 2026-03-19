@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>StoneVista — Your Store. Online. Effortless.</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="static/hero.css">
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<!-- NAVBAR -->
+<nav>
+  <a class="brand" href="/">Stone<em>Vista</em></a>
+  <button class="hamburger" id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-links" id="nav-links">
+    <a href="#about">About</a>
+    <a href="#offer">Features</a>
+    <a href="#process">How It Works</a>
+    <a href="#reviews">Reviews</a>
+    <a href="/login">Sign In</a>
+    <a href="/register" class="nav-cta">Get Started</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <p class="hero-eyebrow">The Future of Stone Commerce</p>
+    <h1 class="hero-title">
+      Your Stone Business.
+      <strong>Online. Effortless.</strong>
+    </h1>
+    <p class="hero-sub">StoneVista gives natural stone sellers a world-class digital storefront — built for artisans, quarries, and wholesalers who deserve better than ordinary.</p>
+    <div class="hero-actions">
+      <a href="/register" class="btn-pill btn-white">Start Selling</a>
+      <a href="#about" class="btn-pill btn-outline">See How It Works</a>
+    </div>
+  </div>
+  <div class="scroll-hint"><div class="scroll-line"></div>Scroll</div>
+</section>
+
+<!-- WHAT IS STONEVISTA -->
+<section class="about-section" id="about">
+  <div class="container">
+    <div class="about-grid">
+      <div class="about-visual reveal">
+        <img src="{{ url_for('static', filename='granite.jpg') }}" alt="Natural Stone">
+        <div class="float-card c1">
+          <div class="float-num">3,400+</div>
+          <div class="float-label">Active Sellers</div>
+        </div>
+        <div class="float-card c2">
+          <div class="float-num">60+</div>
+          <div class="float-label">Countries Reached</div>
+        </div>
+      </div>
+      <div class="about-text reveal">
+        <p class="section-label">What is StoneVista</p>
+        <div class="rule"></div>
+        <h2 class="section-title">Built Exclusively for <em>Stone Sellers</em></h2>
+        <p class="section-body">StoneVista is the only platform designed for the natural stone industry. Whether you're a quarry owner in Rajasthan, a marble wholesaler in Carrara, or an artisan cutting granite in your workshop — we give you the tools to build a stunning online presence and reach buyers worldwide.</p>
+        <p class="section-body" style="margin-top:14px;">No coding. No design skills. No middlemen. Just your stone, your brand, and a global market.</p>
+        <div class="about-pillars">
+          <div class="pillar"><div class="pillar-icon">🏛️</div><div class="pillar-title">Your Own Store</div><div class="pillar-text">A dedicated storefront with your branding, domain, and product catalogue.</div></div>
+          <div class="pillar"><div class="pillar-icon">🌍</div><div class="pillar-title">Global Reach</div><div class="pillar-text">Buyers from architects to designers discover you through our marketplace.</div></div>
+          <div class="pillar"><div class="pillar-icon">📦</div><div class="pillar-title">Easy Inventory</div><div class="pillar-text">Upload slabs, tiles, and blocks with specs, pricing, and availability.</div></div>
+          <div class="pillar"><div class="pillar-icon">💳</div><div class="pillar-title">Secure Payments</div><div class="pillar-text">Receive payments in your currency with fraud protection built in.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHAT WE OFFER -->
+<section class="offer-section" id="offer">
+  <div class="container">
+    <div class="offer-header reveal">
+      <p class="section-label">What We Offer</p>
+      <div class="rule"></div>
+      <h2 class="section-title">Everything You Need.<br><em>Nothing You Don't.</em></h2>
+      <p class="section-body">Six powerful tools, one seamless platform — built to grow your stone business without the complexity.</p>
+    </div>
+    <div class="offer-grid reveal">
+      <div class="offer-card"><div class="offer-num">01</div><div class="offer-icon">🖥️</div><div class="offer-title">Instant Storefront</div><div class="offer-desc">Launch a beautiful, mobile-ready store in under 10 minutes. Choose from curated templates designed for stone materials.</div></div>
+      <div class="offer-card"><div class="offer-num">02</div><div class="offer-icon">🔍</div><div class="offer-title">SEO & Discovery</div><div class="offer-desc">Your products are indexed by Google automatically. Buyers searching for your stone type find you — not your competitors.</div></div>
+      <div class="offer-card"><div class="offer-num">03</div><div class="offer-icon">📸</div><div class="offer-title">HD Product Showcase</div><div class="offer-desc">Upload high-resolution slab images with zoom, texture close-ups, and dimension specs that help buyers decide faster.</div></div>
+      <div class="offer-card"><div class="offer-num">04</div><div class="offer-icon">💬</div><div class="offer-title">Buyer Messaging</div><div class="offer-desc">Built-in inquiry and quote system. Respond to leads, share samples, and close deals — all in one place.</div></div>
+      <div class="offer-card"><div class="offer-num">05</div><div class="offer-icon">📊</div><div class="offer-title">Sales Analytics</div><div class="offer-desc">Know which products get the most views, where your buyers come from, and what drives conversions.</div></div>
+      <div class="offer-card"><div class="offer-num">06</div><div class="offer-icon">🛡️</div><div class="offer-title">Verified Seller Badge</div><div class="offer-desc">Pass our quick verification and earn a trust badge that signals quality and authenticity to serious global buyers.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="process-section" id="process">
+  <div class="container">
+    <div class="process-header reveal">
+      <p class="section-label">How It Works</p>
+      <div class="rule"></div>
+      <h2 class="section-title">From Quarry to <em>Global Buyer</em></h2>
+      <p class="section-body">Four simple steps. Your store goes live before the day ends.</p>
+    </div>
+    <div class="process-steps reveal">
+      <div class="step"><div class="step-circle">1</div><div class="step-title">Create Account</div><div class="step-text">Sign up free in 60 seconds. No credit card required.</div></div>
+      <div class="step"><div class="step-circle">2</div><div class="step-title">Build Your Store</div><div class="step-text">Add your logo, brand colours, and store description.</div></div>
+      <div class="step"><div class="step-circle">3</div><div class="step-title">Upload Products</div><div class="step-text">List your stone inventory with photos, specs, and pricing.</div></div>
+      <div class="step"><div class="step-circle">4</div><div class="step-title">Start Selling</div><div class="step-text">Go live and reach thousands of buyers globally.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section class="reviews-section" id="reviews">
+  <div class="container">
+    <div class="reviews-header reveal">
+      <p class="section-label">What Sellers Say</p>
+      <div class="rule"></div>
+      <h2 class="section-title">Trusted by Stone <em>Artisans</em> Worldwide</h2>
+    </div>
+    <div class="reviews-track reveal">
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Within two weeks of launching my StoneVista store, I received enquiries from three interior designers in Dubai. This platform simply works."</p>
+        <div class="review-author"><div class="author-avatar">🪨</div><div><div class="author-name">Rajiv Sharma</div><div class="author-role">Marble Quarry Owner, Makrana</div></div></div>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"I had zero technical knowledge. StoneVista had my entire catalogue online in a single afternoon. The product photos look absolutely stunning."</p>
+        <div class="review-author"><div class="author-avatar">💎</div><div><div class="author-name">Lucia Bianchi</div><div class="author-role">Granite Exporter, Carrara</div></div></div>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"The verified seller badge changed everything. Buyers trust us immediately. Our orders from the UK and Germany doubled in just six months."</p>
+        <div class="review-author"><div class="author-avatar">🏔️</div><div><div class="author-name">Ahmed Al-Rashid</div><div class="author-role">Limestone Wholesaler, Oman</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container">
+    <p class="section-label">Ready to Begin?</p>
+    <h2 class="cta-title">Your Stone Deserves<br>a <em>World Stage.</em></h2>
+    <p class="cta-sub">Join over 3,400 stone sellers already growing their business on StoneVista. Free to start. No contracts.</p>
+    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
+      <a href="/register" class="btn-pill btn-dark">Create Your Store</a>
+      <a href="/login" class="btn-pill btn-grey">Sign In</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-brand">Stone<em>Vista</em></div>
+        <p class="footer-tagline">The global marketplace for natural stone sellers. Beautiful stores. Real buyers. Zero complexity.</p>
+      </div>
+      <div class="footer-col"><h4>Platform</h4><a href="#">Features</a><a href="#">Pricing</a><a href="#">Verified Sellers</a><a href="#">API</a></div>
+      <div class="footer-col"><h4>Sellers</h4><a href="#">Get Started</a><a href="#">Success Stories</a><a href="#">Seller Guide</a><a href="#">Support</a></div>
+      <div class="footer-col"><h4>Company</h4><a href="#">About Us</a><a href="#">Blog</a><a href="#">Careers</a><a href="#">Contact</a></div>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-copy">© 2025 StoneVista. All rights reserved.</p>
+      <div class="footer-legal"><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Cookies</a></div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring   = document.getElementById('cursor-ring');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove', e => {
+    mx=e.clientX; my=e.clientY;
+    cursor.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`;
+  });
+  (function animateRing(){
+    rx+=(mx-rx)*.12; ry+=(my-ry)*.12;
+    ring.style.transform=`translate(${rx}px,${ry}px) translate(-50%,-50%)`;
+    requestAnimationFrame(animateRing);
+  })();
+
+  // Hamburger
+  const hbtn = document.getElementById('hamburger');
+  const hmenu = document.getElementById('nav-links');
+  hbtn.addEventListener('click', () => { hbtn.classList.toggle('open'); hmenu.classList.toggle('open'); });
+  hmenu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => { hbtn.classList.remove('open'); hmenu.classList.remove('open'); }));
+
+  // Scroll reveal
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach((e,i) => { if(e.isIntersecting){ setTimeout(()=>e.target.classList.add('visible'),i*70); observer.unobserve(e.target); } });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(r => observer.observe(r));
+
+  // Smooth scroll
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const t = document.querySelector(a.getAttribute('href'));
+      if(t){ e.preventDefault(); t.scrollIntoView({behavior:'smooth'}); }
+    });
+  });
+</script>
+</body>
+</html>

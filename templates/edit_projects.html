@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Completed Projects — StoneVista</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/hero.css">
+  <link rel="stylesheet" href="/static/stonevista.css">
+  <style>
+    .project-grid {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 8px;
+    }
+    .project-tile {
+      border-radius: 12px; overflow: hidden; position: relative;
+      background: var(--space-mid); border: 1px solid rgba(255,255,255,0.07);
+      aspect-ratio: 4/3;
+    }
+    .project-tile img { width:100%; height:100%; object-fit:cover; display:block; opacity:.8; transition:opacity .3s; }
+    .project-tile:hover img { opacity:1; }
+    .project-tile-info {
+      position:absolute; bottom:0; left:0; right:0; padding:12px;
+      background:linear-gradient(to top, rgba(0,0,0,.8) 0%, transparent 100%);
+    }
+    .project-tile-title { font-size:13px; font-weight:500; color:var(--white); }
+    .project-tile-meta  { font-size:11px; color:rgba(255,255,255,.55); margin-top:2px; }
+    @media (max-width:768px) { .project-grid { grid-template-columns:repeat(2,1fr); } }
+    @media (max-width:480px) { .project-grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<nav>
+  <a class="brand" href="/">Stone<em>Vista</em></a>
+  <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+  <div class="nav-links" id="nav-links">
+    <a href="/dashboard">← Dashboard</a>
+    <a href="/logout">Sign Out</a>
+  </div>
+</nav>
+
+<div class="page-body">
+  <div class="info-page">
+    <div class="info-wrap">
+
+      <div class="info-page-header reveal">
+        <p class="section-label-sm">Dashboard · Projects</p>
+        <div class="rule"></div>
+        <h1 class="info-page-title">Completed<br><em>Projects</em></h1>
+        <p class="info-page-sub">Showcase your best work. These appear as a gallery on your public store page.</p>
+      </div>
+
+      <!-- ADD NEW PROJECT -->
+      <div class="info-block reveal">
+        <h2 class="info-block-title">Add New Project</h2>
+        <p class="info-block-sub">Upload a photo and details of a completed installation.</p>
+
+        <form action="/dashboard/projects" method="POST" enctype="multipart/form-data">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+            <div class="field-group">
+              <label class="field-label">Project Title *</label>
+              <input type="text" class="field-input" name="project_title" required
+                     placeholder="e.g. Vrindavan Hotel Lobby">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Project Type</label>
+              <div class="sv-select-wrap" id="sw-ptype">
+                <select name="project_type" id="sel-ptype">
+                  <option value="">Select type</option>
+                  {% for t in ['Hotel','Villa','Temple','House','Office','Hospital','School','Mall','Other'] %}
+                  <option value="{{ t }}">{{ t }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+            <div class="field-group">
+              <label class="field-label">Location</label>
+              <input type="text" class="field-input" name="project_location"
+                     placeholder="e.g. Mathura, Uttar Pradesh">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Project Photo</label>
+              <input type="file" class="field-input" name="project_image" accept="image/*"
+                     style="padding:10px; cursor:pointer;" id="proj-img-input"
+                     onchange="previewProjImg(this)">
+            </div>
+          </div>
+
+          <div id="proj-preview" style="display:none; margin-top:10px;">
+            <img id="proj-preview-img" src="" alt=""
+                 style="width:180px; height:120px; object-fit:cover; border-radius:10px; border:1px solid rgba(255,255,255,.1);">
+          </div>
+
+          <div class="info-action-bar" style="border-top:none; padding-top:8px;">
+            <a href="/dashboard" class="btn-info-cancel">Cancel</a>
+            <button type="submit" class="btn-info-submit">Add Project</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- EXISTING PROJECTS -->
+      {% if projects %}
+      <div class="info-block reveal">
+        <h2 class="info-block-title">{{ projects|length }} Project{% if projects|length != 1 %}s{% endif %}</h2>
+        <p class="info-block-sub">These are displayed on your public store page.</p>
+
+        <div class="project-grid">
+          {% for project in projects %}
+          <div class="project-tile">
+            {% if project.project_image %}
+            <img src="{{ url_for('uploaded_project_file', filename=project.project_image) }}"
+                 alt="{{ project.project_title }}">
+            {% else %}
+            <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:32px;">🏛️</div>
+            {% endif %}
+            <div class="project-tile-info">
+              <div class="project-tile-title">{{ project.project_title }}</div>
+              <div class="project-tile-meta">{{ project.project_type }}{% if project.project_location %} · {{ project.project_location }}{% endif %}</div>
+            </div>
+            <form action="/dashboard/projects/delete/{{ project.id }}" method="POST"
+                  style="position:absolute; top:8px; right:8px;">
+              <button type="submit"
+                      style="width:28px;height:28px;border-radius:50%;background:rgba(255,107,107,.3);border:1px solid rgba(255,107,107,.5);color:#fff;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;"
+                      onclick="return confirm('Delete this project?')">✕</button>
+            </form>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+<script>
+  const c=document.getElementById('cursor'),r=document.getElementById('cursor-ring');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;c.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`;});
+  (function ar(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;r.style.transform=`translate(${rx}px,${ry}px) translate(-50%,-50%)`;requestAnimationFrame(ar);})();
+  const h=document.getElementById('hamburger'),m=document.getElementById('nav-links');
+  h.addEventListener('click',()=>{h.classList.toggle('open');m.classList.toggle('open');});
+  m.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{h.classList.remove('open');m.classList.remove('open');}));
+  const io=new IntersectionObserver(e=>{e.forEach((en,i)=>{if(en.isIntersecting){setTimeout(()=>en.target.classList.add('visible'),i*80);io.unobserve(en.target);}});},{threshold:.08});
+  document.querySelectorAll('.reveal').forEach(r=>io.observe(r));
+
+  function previewProjImg(input) {
+    if (!input.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('proj-preview-img').src = e.target.result;
+      document.getElementById('proj-preview').style.display = 'block';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+
+  /* Custom Select */
+  function initCustomSelect(wrapId, selectId) {
+    const wrap = document.getElementById(wrapId);
+    const select = document.getElementById(selectId);
+    if (!wrap || !select) return;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'sv-select-btn placeholder';
+    btn.innerHTML = `<span class="sv-label">${select.options[0].text}</span><span class="sv-arrow"></span>`;
+    wrap.appendChild(btn);
+    const dd = document.createElement('div');
+    dd.className = 'sv-dropdown';
+    Array.from(select.options).forEach((opt, i) => {
+      const item = document.createElement('div');
+      item.className = 'sv-option' + (i === 0 ? ' placeholder-opt' : '');
+      item.textContent = opt.text;
+      item.dataset.value = opt.value;
+      item.addEventListener('click', () => {
+        select.value = opt.value;
+        btn.querySelector('.sv-label').textContent = opt.text;
+        btn.classList.toggle('placeholder', i === 0);
+        dd.querySelectorAll('.sv-option').forEach(o => o.classList.remove('active'));
+        item.classList.add('active');
+        wrap.classList.remove('open');
+      });
+      dd.appendChild(item);
+    });
+    wrap.appendChild(dd);
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      document.querySelectorAll('.sv-select-wrap.open').forEach(w => { if(w !== wrap) w.classList.remove('open'); });
+      wrap.classList.toggle('open');
+    });
+  }
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.sv-select-wrap.open').forEach(w => w.classList.remove('open'));
+  });
+  initCustomSelect('sw-ptype', 'sel-ptype');
+</script>
+</body>
+</html>

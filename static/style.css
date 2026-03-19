@@ -1,0 +1,10 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+
+.mav-edit{
+    padding: 20px;
+    background-color: grey;
+    margin-bottom: 0px;
+}

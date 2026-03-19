@@ -1,0 +1,375 @@
+/* ═══════════════════════════════════════════════════
+   stonevista.css — Supplementary styles
+   Extends hero.css with new feature-specific styles.
+   Import AFTER hero.css in every template that needs it.
+═══════════════════════════════════════════════════ */
+
+/* ─── INFO.HTML: MAP PICKER ─────────────────────── */
+.map-picker-wrap {
+  border-radius: 14px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.1);
+  margin-bottom: 10px; position: relative;
+}
+.map-picker-wrap iframe {
+  width: 100%; height: 300px; border: none; display: block;
+}
+.map-coords-row {
+  display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;
+}
+.map-coords-row .field-input { flex: 1; min-width: 120px; font-size: 12px; }
+.map-search-row {
+  display: flex; gap: 8px; margin-bottom: 10px;
+}
+.map-search-row .field-input { flex: 1; }
+.btn-map-search {
+  padding: 10px 18px; background: var(--gold-line); color: var(--black);
+  font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500;
+  border: none; border-radius: 10px; cursor: pointer;
+  transition: opacity .2s; white-space: nowrap;
+}
+.btn-map-search:hover { opacity: .85; }
+.map-hint {
+  font-size: 11px; color: var(--mid); margin-top: 6px; line-height: 1.5;
+}
+
+/* ─── INFO.HTML: WHATSAPP FIELD ─────────────────── */
+.field-wa-wrap { position: relative; }
+.field-wa-prefix {
+  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  font-size: 18px; pointer-events: none; z-index: 1;
+  line-height: 1;
+}
+.field-wa-wrap .field-input { padding-left: 44px; }
+
+/* ─── MARBLE MODAL (shared by both templates) ───── */
+.mmodal-backdrop {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s;
+}
+.mmodal-backdrop.open { opacity: 1; pointer-events: all; }
+
+.mmodal {
+  background: #1a1a1a;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  max-width: 640px; width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  transform: scale(0.96) translateY(12px);
+  transition: transform .3s;
+}
+.mmodal-backdrop.open .mmodal { transform: scale(1) translateY(0); }
+
+.mmodal-img {
+  width: 100%; aspect-ratio: 4/3; object-fit: cover;
+  border-radius: 18px 18px 0 0; display: block;
+}
+.mmodal-body { padding: 28px 32px 32px; }
+.mmodal-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.8rem; font-weight: 400;
+  color: #fff; margin-bottom: 6px;
+}
+.mmodal-sub {
+  font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase;
+  color: #888; margin-bottom: 18px;
+}
+.mmodal-desc {
+  font-size: 0.9rem; color: #aaa; line-height: 1.75;
+  margin-bottom: 28px;
+}
+.mmodal-close {
+  position: absolute; top: 16px; right: 16px;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15);
+  color: #fff; font-size: 18px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .2s; z-index: 2; line-height: 1;
+}
+.mmodal-close:hover { background: rgba(255,255,255,0.1); }
+
+/* WhatsApp enquiry button — works in both templates */
+.btn-wa {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 14px 28px;
+  background: #25D366; color: #fff;
+  font-size: 0.82rem; font-weight: 600;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  text-decoration: none; border: none; cursor: pointer;
+  border-radius: 980px;
+  transition: opacity .2s, transform .15s;
+  width: 100%; justify-content: center;
+}
+.btn-wa:hover { opacity: .88; transform: translateY(-1px); }
+.btn-wa svg { width: 18px; height: 18px; fill: #fff; flex-shrink: 0; }
+
+/* ─── CONTACT SECTION (shared by both templates) ── */
+.contact-section {
+  padding: 80px 64px;
+}
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+.contact-block-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem; font-weight: 400;
+  letter-spacing: 0.05em;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.contact-row {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 14px;
+}
+.contact-icon {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; flex-shrink: 0;
+}
+.contact-info-label {
+  font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase;
+  opacity: .5; margin-bottom: 3px;
+}
+.contact-info-value { font-size: 0.9rem; line-height: 1.4; }
+
+/* Contact CTA buttons row */
+.contact-cta-row {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  margin-top: 24px;
+}
+.btn-call {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 13px 24px;
+  font-size: 0.8rem; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  text-decoration: none; border-radius: 980px;
+  transition: opacity .2s, transform .15s; flex: 1;
+  justify-content: center; min-width: 140px;
+}
+.btn-call:hover { opacity: .85; transform: translateY(-1px); }
+
+/* Map embed */
+.contact-map {
+  border-radius: 16px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+  height: 280px; position: relative;
+}
+.contact-map iframe {
+  width: 100%; height: 100%; border: none; display: block;
+}
+.contact-map-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 10px;
+  background: rgba(255,255,255,0.03);
+  color: rgba(255,255,255,0.3); font-size: 13px; text-align: center;
+}
+.contact-map-placeholder span { font-size: 32px; }
+
+/* Template 1 overrides (light theme) */
+.t1-contact {
+  background: #f0ece5;
+  padding: 80px 64px;
+}
+.t1-contact .contact-block-title { color: #1a1814; border-color: rgba(26,24,20,0.1); }
+.t1-contact .contact-icon { background: rgba(26,24,20,0.06); border-color: rgba(26,24,20,0.1); }
+.t1-contact .contact-info-label { color: #6b6560; opacity: 1; }
+.t1-contact .contact-info-value { color: #1a1814; }
+.t1-contact .contact-map { border-color: rgba(26,24,20,0.12); }
+
+/* Section header reused */
+.contact-header { margin-bottom: 52px; }
+.contact-eyebrow {
+  font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.contact-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2rem, 4vw, 3rem); font-weight: 300; line-height: 1.1;
+}
+.contact-title em { font-style: italic; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .contact-section { padding: 60px 24px; }
+  .t1-contact { padding: 60px 24px; }
+  .contact-grid { grid-template-columns: 1fr; }
+  .contact-map { height: 220px; }
+  .mmodal-body { padding: 20px 20px 24px; }
+  .mmodal-name { font-size: 1.4rem; }
+}
+@media (max-width: 480px) {
+  .contact-cta-row { flex-direction: column; }
+  .btn-call { width: 100%; }
+}
+
+
+/* ════════════════════════════════════════════════════
+   REVIEWS SECTION
+════════════════════════════════════════════════════ */
+.reviews-section-sv { padding: 80px 64px; }
+.avg-rating-bar { display:flex;align-items:center;gap:16px;margin-bottom:48px;flex-wrap:wrap; }
+.avg-rating-num { font-family:'Cormorant Garamond',serif;font-size:4rem;font-weight:300;line-height:1;color:#f0a500; }
+.avg-rating-stars { font-size:22px;letter-spacing:3px;color:#f0a500; }
+.avg-rating-count { font-size:13px;color:rgba(255,255,255,.4);margin-top:3px; }
+.reviews-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px; }
+.review-card-sv { background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:28px;transition:border-color .3s; }
+.review-card-sv:hover { border-color:rgba(200,184,154,0.25); }
+.rv-stars { color:#f0a500;font-size:14px;letter-spacing:2px;margin-bottom:14px; }
+.rv-text { font-size:14px;line-height:1.75;font-style:italic;color:rgba(255,255,255,.7);margin-bottom:18px; }
+.rv-author { display:flex;align-items:center;gap:10px; }
+.rv-avatar { width:36px;height:36px;border-radius:50%;background:rgba(200,184,154,0.15);border:1px solid rgba(200,184,154,0.2);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:var(--gold-line);flex-shrink:0;font-family:'Cormorant Garamond',serif; }
+.rv-name { font-size:13px;font-weight:500;color:#fff; }
+.rv-city { font-size:11px;color:rgba(255,255,255,.4);margin-top:2px; }
+.rv-verified { font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--success);background:rgba(94,204,123,0.1);border:1px solid rgba(94,204,123,0.2);padding:2px 8px;border-radius:980px;margin-left:auto;flex-shrink:0; }
+.t1-reviews { background:#f7f4ef;padding:80px 64px; }
+.t1-reviews .review-card-sv { background:rgba(26,24,20,0.04);border-color:rgba(26,24,20,0.08); }
+.t1-reviews .rv-text { color:#6b6560; }
+.t1-reviews .rv-name { color:#1a1814; }
+.t1-reviews .rv-city { color:#6b6560; }
+
+/* ════════════════════════════════════════════════════
+   PROJECTS GALLERY
+════════════════════════════════════════════════════ */
+.projects-section-sv { padding:80px 64px; }
+.projects-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px; }
+.project-card-sv { position:relative;border-radius:14px;overflow:hidden;aspect-ratio:4/3;cursor:pointer;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);transition:transform .3s,box-shadow .3s; }
+.project-card-sv:hover { transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.4); }
+.project-card-sv img { width:100%;height:100%;object-fit:cover;display:block;filter:brightness(.75);transition:filter .3s; }
+.project-card-sv:hover img { filter:brightness(.9); }
+.project-card-sv .pc-overlay { position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.8) 0%,transparent 55%);display:flex;flex-direction:column;justify-content:flex-end;padding:18px; }
+.pc-title { font-size:15px;font-weight:500;color:#fff; }
+.pc-meta  { font-size:11px;color:rgba(255,255,255,.5);margin-top:3px; }
+.pc-type-badge { position:absolute;top:12px;left:12px;font-size:10px;letter-spacing:.8px;text-transform:uppercase;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);color:#fff;padding:4px 10px;border-radius:980px;border:1px solid rgba(255,255,255,.1); }
+.t1-projects { background:#fff;padding:80px 64px; }
+.t1-projects .project-card-sv { border-color:rgba(26,24,20,0.1); }
+
+/* ════════════════════════════════════════════════════
+   TRUST / ABOUT SECTION
+════════════════════════════════════════════════════ */
+.about-section-sv { padding:80px 64px; }
+.trust-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-top:32px; }
+.trust-card { background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:24px 20px;text-align:center; }
+.trust-icon  { font-size:28px;margin-bottom:10px; }
+.trust-value { font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:300;color:#fff; }
+.trust-label { font-size:11px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-top:4px; }
+.t1-about { background:#f0ece5;padding:80px 64px; }
+.t1-about .trust-card { background:rgba(26,24,20,0.04);border-color:rgba(26,24,20,0.08); }
+.t1-about .trust-value { color:#1a1814; }
+.t1-about .trust-label { color:#6b6560; }
+
+/* ════════════════════════════════════════════════════
+   FLOATING CALL/WHATSAPP BUTTONS
+════════════════════════════════════════════════════ */
+.float-btns { position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:10px;z-index:500; }
+.float-btn { width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;text-decoration:none;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.3);transition:transform .2s,box-shadow .2s;position:relative; }
+.float-btn:hover { transform:scale(1.1);box-shadow:0 6px 24px rgba(0,0,0,.4); }
+.float-btn-call { background:#2196F3; }
+.float-btn-wa   { background:#25D366; }
+.float-btn-label { position:absolute;right:60px;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);color:#fff;font-size:11px;font-weight:500;letter-spacing:.5px;padding:5px 10px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s; }
+.float-btn:hover .float-btn-label { opacity:1; }
+
+@media(max-width:768px){
+  .reviews-section-sv,.t1-reviews,.projects-section-sv,.t1-projects,.about-section-sv,.t1-about{padding:60px 24px;}
+  .float-btns{bottom:16px;right:16px;}
+  .float-btn{width:46px;height:46px;font-size:20px;}
+  .projects-grid{grid-template-columns:repeat(2,1fr);gap:12px;}
+}
+@media(max-width:480px){.projects-grid{grid-template-columns:1fr;}}
+
+
+/* ════════════════════════════════════════════════════
+   CUSTOM SELECT DROPDOWN
+   Replaces native <select> OS picker entirely.
+   Usage: wrap any <select class="field-input"> in
+   <div class="sv-select-wrap"> — JS auto-inits all.
+════════════════════════════════════════════════════ */
+.sv-select-wrap {
+  position: relative;
+  width: 100%;
+}
+/* Hide the real select but keep it in DOM for form submission */
+.sv-select-wrap select {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0; height: 0;
+}
+.sv-select-btn {
+  width: 100%;
+  padding: 12px 40px 12px 16px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 300;
+  color: var(--white);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color .2s, background .2s;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px;
+  user-select: none;
+}
+.sv-select-btn:hover,
+.sv-select-wrap.open .sv-select-btn {
+  border-color: rgba(200,184,154,0.5);
+  background: rgba(255,255,255,0.08);
+}
+.sv-select-btn .sv-arrow {
+  width: 10px; height: 10px; flex-shrink: 0;
+  border-right: 1.5px solid var(--mid);
+  border-bottom: 1.5px solid var(--mid);
+  transform: rotate(45deg);
+  transition: transform .2s;
+  margin-top: -3px;
+}
+.sv-select-wrap.open .sv-select-btn .sv-arrow {
+  transform: rotate(-135deg);
+  margin-top: 3px;
+}
+.sv-select-btn.placeholder { color: rgba(255,255,255,0.2); }
+
+.sv-dropdown {
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+  background: #1d1d1f;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  z-index: 900;
+  max-height: 240px;
+  overflow-y: auto;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+  display: none;
+  padding: 6px;
+}
+.sv-select-wrap.open .sv-dropdown { display: block; }
+
+.sv-option {
+  padding: 10px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 300;
+  color: var(--silver);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.sv-option:hover  { background: rgba(255,255,255,0.06); color: var(--white); }
+.sv-option.active { background: rgba(200,184,154,0.12); color: var(--gold-line); }
+.sv-option.placeholder-opt { color: rgba(255,255,255,0.2); }
+
+/* Scrollbar styling for dropdown */
+.sv-dropdown::-webkit-scrollbar { width: 4px; }
+.sv-dropdown::-webkit-scrollbar-track { background: transparent; }
+.sv-dropdown::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }

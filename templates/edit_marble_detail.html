@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Edit Marble — StoneVista</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/hero.css">
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<nav>
+  <a class="brand" href="/">Stone<em>Vista</em></a>
+  <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+  <div class="nav-links" id="nav-links">
+    <a href="/dashboard/edit/marbles">← Marble Catalogue</a>
+    <a href="/logout">Sign Out</a>
+  </div>
+</nav>
+
+<div class="page-body">
+  <div class="info-page">
+    <div class="info-wrap">
+
+      <div class="info-page-header reveal">
+        <p class="section-label-sm">Dashboard · Marble Detail</p>
+        <div class="rule"></div>
+        <h1 class="info-page-title">Edit <em>Marble Info</em></h1>
+        <p class="info-page-sub">Add details about this stone. These appear in the popup when customers click the marble image.</p>
+      </div>
+
+      <form action="/dashboard/marble/edit/{{ marble.id }}" method="POST" enctype="multipart/form-data">
+        <div class="info-block reveal">
+
+          <!-- Current image preview -->
+          <div style="display:flex; gap:24px; align-items:flex-start; flex-wrap:wrap; margin-bottom:32px;">
+            <img src="{{ url_for('uploaded_marble_file', filename=marble.filename) }}"
+                 style="width:160px; height:120px; object-fit:cover; border-radius:12px; border:1px solid rgba(255,255,255,0.1);">
+            <div style="flex:1; min-width:200px;">
+              <h2 class="info-block-title">{{ marble.marble_name or marble.filename }}</h2>
+              <p class="info-block-sub">Current image: {{ marble.filename }}</p>
+              <div class="field-group" style="margin-bottom:0;">
+                <label class="field-label">Replace Image (optional)</label>
+                <input type="file" class="field-input" name="new_image" accept="image/*"
+                       style="padding:10px; cursor:pointer;">
+              </div>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+
+            <div class="field-group">
+              <label class="field-label">Stone Name</label>
+              <input type="text" class="field-input" name="marble_name"
+                     value="{{ marble.marble_name or '' }}"
+                     placeholder="e.g. Rajasthan Pink Granite">
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">Stone Type</label>
+              <select class="field-input" name="marble_type" style="cursor:pointer;">
+                <option value="">Select type</option>
+                {% for t in ['Marble','Granite','Quartz','Sandstone','Limestone','Slate','Travertine'] %}
+                <option value="{{ t }}" {% if marble.marble_type == t %}selected{% endif %}>{{ t }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">Origin / Source</label>
+              <input type="text" class="field-input" name="origin"
+                     value="{{ marble.origin or '' }}"
+                     placeholder="e.g. Rajasthan, India">
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">Finish</label>
+              <select class="field-input" name="finish" style="cursor:pointer;">
+                <option value="">Select finish</option>
+                {% for f in ['Polished','Matte','Honed','Brushed','Flamed','Sandblasted'] %}
+                <option value="{{ f }}" {% if marble.finish == f %}selected{% endif %}>{{ f }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">Thickness</label>
+              <input type="text" class="field-input" name="thickness"
+                     value="{{ marble.thickness or '' }}"
+                     placeholder="e.g. 18mm, 20mm">
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">Available Sizes</label>
+              <input type="text" class="field-input" name="available_sizes"
+                     value="{{ marble.available_sizes or '' }}"
+                     placeholder="e.g. 2x4 ft, 4x8 ft, Custom">
+            </div>
+
+          </div>
+
+          <div class="field-group" style="margin-top:8px;">
+            <label class="field-label">Description</label>
+            <textarea class="field-input" name="marble_desc" rows="4"
+                      placeholder="Describe the stone — colour, vein pattern, best uses..."
+                      style="resize:vertical; line-height:1.6;">{{ marble.marble_desc or '' }}</textarea>
+          </div>
+
+        </div>
+
+        <div class="info-action-bar reveal">
+          <a href="/dashboard/edit/marbles" class="btn-info-cancel">Cancel</a>
+          <button type="submit" class="btn-info-submit">Save Marble Details</button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  const c=document.getElementById('cursor'),r=document.getElementById('cursor-ring');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;c.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`;});
+  (function ar(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;r.style.transform=`translate(${rx}px,${ry}px) translate(-50%,-50%)`;requestAnimationFrame(ar);})();
+  const h=document.getElementById('hamburger'),m=document.getElementById('nav-links');
+  h.addEventListener('click',()=>{h.classList.toggle('open');m.classList.toggle('open');});
+  m.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{h.classList.remove('open');m.classList.remove('open');}));
+  const io=new IntersectionObserver(e=>{e.forEach((en,i)=>{if(en.isIntersecting){setTimeout(()=>en.target.classList.add('visible'),i*80);io.unobserve(en.target);}});},{threshold:.08});
+  document.querySelectorAll('.reveal').forEach(r=>io.observe(r));
+</script>
+</body>
+</html>

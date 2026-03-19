@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>{{ seller.shop_name }}</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/stonevista.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:      #0d0d0d; --surface: #161616; --card: #1c1c1c;
+      --border:  #2a2a2a; --white: #ffffff; --grey: #888888;
+      --light:   #cccccc; --accent: #e8ff47; --accent2: #ff6b35;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--white); font-weight: 300; }
+
+    /* ── NAVBAR ── */
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 48px; height: 68px; background: rgba(13,13,13,0.88); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); }
+    .nav-brand { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 0.06em; color: var(--white); text-decoration: none; }
+    .nav-brand span { color: var(--accent); }
+    .nav-links { display: flex; gap: 36px; align-items: center; }
+    .nav-links a { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--grey); text-decoration: none; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--white); }
+    .nav-cta { background: var(--accent) !important; color: var(--bg) !important; padding: 8px 20px; border-radius: 3px; }
+
+    /* ── HERO ── */
+    .hero { position: relative; height: 100vh; min-height: 640px; margin-top: 68px; overflow: hidden; display: flex; align-items: flex-end; }
+    .slides { position: absolute; inset: 0; }
+    .slide { position: absolute; inset: 0; opacity: 0; transition: opacity 1.2s ease; }
+    .slide.active { opacity: 1; }
+    .slide img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.35); display: block; }
+    .slide-fallback { position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 60%, #1e1e1e 0%, #0a0a0a 100%); }
+    .hero::after { content: ''; position: absolute; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 1; }
+    .hero-content { position: relative; z-index: 2; padding: 0 64px 80px; width: 100%; }
+    .hero-count { font-family: 'Bebas Neue', sans-serif; font-size: clamp(5rem,18vw,16rem); line-height: 0.85; color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,0.12); position: absolute; bottom: 40px; right: 48px; z-index: 1; pointer-events: none; letter-spacing: -0.02em; }
+    .hero-eyebrow { font-size: 0.7rem; font-weight: 500; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; display: flex; align-items: center; gap: 12px; }
+    .hero-eyebrow::before { content: ''; display: inline-block; width: 32px; height: 1px; background: var(--accent); }
+    .hero-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(3rem,8vw,7.5rem); line-height: 0.92; letter-spacing: 0.02em; color: var(--white); margin-bottom: 24px; max-width: 800px; }
+    .hero-title .accent-word { color: var(--accent); }
+    .hero-desc { font-size: 1rem; font-weight: 300; color: var(--grey); max-width: 480px; line-height: 1.7; margin-bottom: 40px; }
+    .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; }
+    .btn-accent { display: inline-flex; align-items: center; gap: 10px; padding: 14px 36px; background: var(--accent); color: var(--bg); font-size: 0.8rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; border: none; cursor: pointer; transition: opacity 0.2s, transform 0.15s; }
+    .btn-accent:hover { opacity: 0.88; transform: translateY(-2px); }
+    .btn-ghost { display: inline-flex; align-items: center; gap: 10px; padding: 13px 36px; background: transparent; color: var(--white); font-size: 0.8rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; border: 1px solid var(--border); cursor: pointer; transition: border-color 0.2s, background 0.2s; }
+    .btn-ghost:hover { border-color: var(--white); background: rgba(255,255,255,0.05); }
+    .hero-dots { position: absolute; bottom: 36px; left: 64px; z-index: 3; display: flex; gap: 6px; align-items: center; }
+    .hdot { width: 24px; height: 2px; background: rgba(255,255,255,0.25); border: none; cursor: pointer; transition: background 0.3s, width 0.3s; }
+    .hdot.active { background: var(--accent); width: 40px; }
+
+    /* ── INFO BAR ── */
+    .info-bar { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 40px 64px; display: flex; align-items: center; justify-content: space-between; gap: 32px; flex-wrap: wrap; }
+    .info-item-label { font-size: 0.65rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+    .info-item-value { font-size: 0.95rem; color: var(--light); line-height: 1.5; }
+    .info-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    /* ── COLLECTION ── */
+    .collection { padding: 100px 64px; background: var(--bg); }
+    .col-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 60px; gap: 32px; flex-wrap: wrap; }
+    .col-eyebrow { font-size: 0.65rem; font-weight: 500; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+    .col-eyebrow::before { content: ''; width: 24px; height: 1px; background: var(--accent); display: inline-block; }
+    .col-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.4rem,5vw,5rem); letter-spacing: 0.03em; line-height: 0.95; color: var(--white); }
+    .col-title .dim { color: var(--border); }
+    .col-count { font-family: 'Bebas Neue', sans-serif; font-size: 5rem; color: var(--border); line-height: 1; }
+
+    /* ── MARBLE GRID ── */
+    .marble-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 3px; }
+    .marble-card:nth-child(5n) { grid-column: span 2; }
+    .marble-card { position: relative; overflow: hidden; background: var(--card); cursor: pointer; aspect-ratio: 1; }
+    .marble-card:nth-child(5n) { aspect-ratio: 2/1; }
+    .marble-card img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94), filter 0.4s ease; filter: saturate(0.7); }
+    .marble-card:hover img { transform: scale(1.1); filter: saturate(1.1); }
+    .card-index { position: absolute; top: 14px; left: 16px; font-family: 'Bebas Neue', sans-serif; font-size: 0.85rem; letter-spacing: 0.08em; color: rgba(255,255,255,0.3); z-index: 2; transition: color 0.3s; }
+    .marble-card:hover .card-index { color: var(--accent); }
+    .card-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 18px 18px; background: linear-gradient(to top, rgba(13,13,13,0.95) 0%, transparent 100%); transform: translateY(100%); transition: transform 0.38s cubic-bezier(0.25,0.46,0.45,0.94); display: flex; align-items: flex-end; justify-content: space-between; }
+    .marble-card:hover .card-info { transform: translateY(0); }
+    .card-name { font-size: 0.95rem; font-weight: 500; color: var(--white); letter-spacing: 0.04em; }
+    .card-tag { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); background: rgba(232,255,71,0.1); padding: 4px 10px; border: 1px solid rgba(232,255,71,0.3); }
+    .marble-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform 0.4s ease; }
+    .marble-card:hover::after { transform: scaleX(1); }
+
+    /* ── CONTACT (dark theme) ── */
+    .t2-contact { background: var(--surface); border-top: 1px solid var(--border); padding: 80px 64px; }
+    .t2-contact .contact-block-title { color: var(--white); border-bottom-color: var(--border); font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: 0.08em; }
+    .t2-contact .contact-icon { background: rgba(255,255,255,0.05); border-color: var(--border); }
+    .t2-contact .contact-info-label { color: var(--accent); opacity: 1; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 3px; }
+    .t2-contact .contact-info-value { color: var(--light); font-size: 0.9rem; }
+    .t2-contact .contact-map { border-color: var(--border); }
+    .t2-contact .contact-eyebrow { color: var(--accent); font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+    .t2-contact .contact-eyebrow::before { content: ''; width: 24px; height: 1px; background: var(--accent); display: inline-block; }
+    .t2-contact .contact-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2rem,4vw,3.5rem); color: var(--white); line-height: 0.95; letter-spacing: 0.03em; }
+    .t2-contact .contact-title .acc { color: var(--accent); }
+    .btn-call-accent { background: var(--accent); color: var(--bg); }
+    .btn-call-accent:hover { opacity: .88; }
+
+    /* ── FOOTER ── */
+    footer { background: var(--surface); border-top: 1px solid var(--border); padding: 64px 64px 40px; }
+    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 48px; padding-bottom: 48px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+    .f-brand { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 0.06em; color: var(--white); margin-bottom: 12px; }
+    .f-brand span { color: var(--accent); }
+    .f-tagline { font-size: 0.85rem; color: var(--grey); line-height: 1.7; max-width: 280px; }
+    .f-col-title { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; }
+    .f-col p { font-size: 0.85rem; color: var(--grey); line-height: 1.8; }
+    .f-col a { display: block; font-size: 0.85rem; color: var(--grey); text-decoration: none; line-height: 1.8; transition: color 0.2s; }
+    .f-col a:hover { color: var(--white); }
+    .footer-bottom { display: flex; justify-content: space-between; align-items: center; font-size: 0.73rem; color: var(--border); flex-wrap: wrap; gap: 8px; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) { .marble-grid { grid-template-columns: repeat(2,1fr); } .marble-card:nth-child(5n) { grid-column: span 1; aspect-ratio: 1; } .footer-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 640px) { nav { padding: 0 20px; } .nav-links { display: none; } .hero-content { padding: 0 24px 72px; } .hero-dots { left: 24px; } .hero-count { display: none; } .info-bar { padding: 32px 24px; } .collection { padding: 64px 24px; } .t2-contact { padding: 60px 24px; } footer { padding: 48px 24px 32px; } .marble-grid { grid-template-columns: repeat(2,1fr); gap: 2px; } }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+  <a class="nav-brand" href="#">{{ seller.shop_name }}</a>
+  <div class="nav-links">
+    <a href="#about">About</a>
+    <a href="#collection">Collection</a>
+    {% if reviews %}<a href="#reviews">Reviews</a>{% endif %}
+    {% if projects %}<a href="#projects">Projects</a>{% endif %}
+    <a href="#contact">Contact</a>
+    {% if user and user.phone %}
+    <a href="tel:{{ user.phone }}" class="nav-cta">📞 Call Now</a>
+    {% endif %}
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="slides" id="slides">
+    {% if seller.shop_photos %}
+      {% for photo in seller.shop_photos.split(',') %}{% if photo %}
+      <div class="slide {% if loop.first %}active{% endif %}">
+        <img src="{{ url_for('uploaded_seller_file', filename=photo) }}" alt="{{ seller.shop_name }}">
+      </div>
+      {% endif %}{% endfor %}
+    {% else %}
+      <div class="slide active"><div class="slide-fallback"></div></div>
+    {% endif %}
+  </div>
+  <div class="hero-dots" id="dots"></div>
+  <div class="hero-count">{{ marbles|length }}</div>
+  <div class="hero-content">
+    <p class="hero-eyebrow">Stone &amp; Marble Specialists</p>
+    <h1 class="hero-title">{{ seller.shop_name }}<br><span class="accent-word">Premium</span> Stone</h1>
+    {% if seller.description %}<p class="hero-desc">{{ seller.description }}</p>{% endif %}
+    <div class="hero-actions">
+      {% if user and user.phone %}
+      <a href="tel:{{ user.phone }}" class="btn-accent">📞 Call Shop</a>
+      {% endif %}
+      {% if seller.whatsapp %}
+      <a href="https://wa.me/{{ seller.whatsapp | replace('+','') | replace(' ','') }}" target="_blank" class="btn-wa" style="border-radius:0; padding:14px 28px; width:auto;">
+        <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.553 4.112 1.522 5.836L.057 23.743a.5.5 0 0 0 .612.612l5.915-1.465A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 0 1-5.034-1.386l-.36-.214-3.733.924.944-3.712-.235-.38A9.808 9.808 0 0 1 2.182 12C2.182 6.56 6.56 2.182 12 2.182S21.818 6.56 21.818 12 17.44 21.818 12 21.818z"/></svg>
+        WhatsApp
+      </a>
+      {% endif %}
+      <a href="#collection" class="btn-ghost">View Collection ↓</a>
+    </div>
+  </div>
+</section>
+
+<!-- INFO BAR -->
+<div class="info-bar" id="strip">
+  <div>
+    <div class="info-item-label">Shop</div>
+    <div class="info-item-value">{{ seller.shop_name }}</div>
+  </div>
+  <div>
+    <div class="info-item-label">Location</div>
+    <div class="info-item-value">{{ seller.address or '—' }}</div>
+  </div>
+  {% if user and user.phone %}
+  <div>
+    <div class="info-item-label">Phone</div>
+    <div class="info-item-value">{{ user.phone }}</div>
+  </div>
+  {% endif %}
+  <div class="info-btns">
+    {% if user and user.phone %}
+    <a href="tel:{{ user.phone }}" class="btn-accent">📞 Call</a>
+    {% endif %}
+    {% if seller.whatsapp %}
+    <a href="https://wa.me/{{ seller.whatsapp | replace('+','') | replace(' ','') }}" target="_blank" class="btn-wa" style="border-radius:0; padding:13px 20px; width:auto;">
+      <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.553 4.112 1.522 5.836L.057 23.743a.5.5 0 0 0 .612.612l5.915-1.465A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 0 1-5.034-1.386l-.36-.214-3.733.924.944-3.712-.235-.38A9.808 9.808 0 0 1 2.182 12C2.182 6.56 6.56 2.182 12 2.182S21.818 6.56 21.818 12 17.44 21.818 12 21.818z"/></svg>
+      WhatsApp
+    </a>
+    {% endif %}
+    <a href="#collection" class="btn-ghost">Marble Collection</a>
+  </div>
+</div>
+
+<!-- ── ABOUT / TRUST ── -->
+{% if seller.business_type or seller.years_experience or seller.bulk_available or seller.delivery_areas %}
+<div class="about-section-sv" id="about" style="background:var(--surface);border-top:1px solid var(--border);">
+  <p style="font-size:0.65rem;font-weight:500;letter-spacing:0.22em;text-transform:uppercase;color:var(--accent);margin-bottom:12px;display:flex;align-items:center;gap:10px;"><span style="width:24px;height:1px;background:var(--accent);display:inline-block;"></span>About Us</p>
+  <h2 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,4vw,3.5rem);color:var(--white);line-height:.95;letter-spacing:.03em;margin-bottom:32px;">WHY CHOOSE <span style="color:var(--accent);">US</span></h2>
+  <div class="trust-grid">
+    {% if seller.years_experience %}<div class="trust-card"><div class="trust-icon">🏆</div><div class="trust-value">{{ seller.years_experience }}+</div><div class="trust-label">Years Experience</div></div>{% endif %}
+    {% if seller.business_type %}<div class="trust-card"><div class="trust-icon">🏭</div><div class="trust-value" style="font-size:1.1rem;">{{ seller.business_type }}</div><div class="trust-label">Business Type</div></div>{% endif %}
+    {% if seller.bulk_available %}<div class="trust-card"><div class="trust-icon">📦</div><div class="trust-value" style="font-size:1.1rem;">Available</div><div class="trust-label">Bulk Orders</div></div>{% endif %}
+    {% if seller.delivery_areas %}<div class="trust-card"><div class="trust-icon">🚚</div><div class="trust-value" style="font-size:0.9rem;">{{ seller.delivery_areas }}</div><div class="trust-label">Delivery Areas</div></div>{% endif %}
+  </div>
+</div>
+{% endif %}
+
+<!-- MARBLE COLLECTION -->
+<section class="collection" id="collection">
+  <div class="col-header">
+    <div>
+      <p class="col-eyebrow">Our Stock</p>
+      <h2 class="col-title">Marble<br><span class="dim">&amp;</span> Stone</h2>
+    </div>
+    <div class="col-count">{{ '%02d' % (marbles|length) }}</div>
+  </div>
+  <div class="marble-grid">
+    {% if marbles %}
+      {% for marble in marbles %}
+      {% set mname = marble.marble_name or (marble.filename | replace('.jpg','') | replace('.png','') | replace('_',' ') | title) %}
+      <div class="marble-card" onclick="openMarbleModal(
+        '{{ mname }}',
+        '{{ url_for('uploaded_marble_file', filename=marble.filename) }}',
+        '{{ seller.whatsapp | replace('+','') | replace(' ','') if seller.whatsapp else '' }}',
+        '{{ marble.marble_type or '' }}',
+        '{{ marble.origin or '' }}',
+        '{{ marble.finish or '' }}',
+        '{{ marble.thickness or '' }}',
+        '{{ marble.available_sizes or '' }}',
+        '{{ marble.marble_desc or '' }}'
+      )">
+        <span class="card-index">{{ '%02d' % loop.index }}</span>
+        <img src="{{ url_for('uploaded_marble_file', filename=marble.filename) }}" alt="{{ mname }}">
+        <div class="card-info">
+          <span class="card-name">{{ mname }}</span>
+          <span class="card-tag">Stone</span>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p style="color:var(--grey); grid-column:1/-1; padding:40px 0;">No marble items added yet.</p>
+    {% endif %}
+  </div>
+</section>
+
+<!-- ── CUSTOMER REVIEWS ── -->
+{% if reviews %}
+<div class="reviews-section-sv" id="reviews" style="background:var(--bg);border-top:1px solid var(--border);">
+  <p style="font-size:0.65rem;font-weight:500;letter-spacing:0.22em;text-transform:uppercase;color:var(--accent);margin-bottom:12px;display:flex;align-items:center;gap:10px;"><span style="width:24px;height:1px;background:var(--accent);display:inline-block;"></span>Reviews</p>
+  <h2 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,4vw,3.5rem);color:var(--white);line-height:.95;letter-spacing:.03em;margin-bottom:40px;">CUSTOMER <span style="color:var(--accent);">FEEDBACK</span></h2>
+  {% if avg_rating %}
+  <div class="avg-rating-bar">
+    <div class="avg-rating-num">{{ avg_rating }}</div>
+    <div>
+      <div class="avg-rating-stars">{% for i in range(avg_rating|int) %}★{% endfor %}{% if avg_rating % 1 >= 0.5 %}★{% endif %}</div>
+      <div class="avg-rating-count">{{ reviews|length }} review{% if reviews|length != 1 %}s{% endif %}</div>
+    </div>
+  </div>
+  {% endif %}
+  <div class="reviews-grid">
+    {% for review in reviews %}
+    <div class="review-card-sv">
+      <div class="rv-stars">{{ '★' * review.rating }}{{ '☆' * (5 - review.rating) }}</div>
+      {% if review.review_text %}<p class="rv-text">"{{ review.review_text }}"</p>{% endif %}
+      <div class="rv-author">
+        <div class="rv-avatar">{{ review.reviewer_name[0] | upper }}</div>
+        <div>
+          <div class="rv-name">{{ review.reviewer_name }}</div>
+          {% if review.reviewer_city %}<div class="rv-city">{{ review.reviewer_city }}</div>{% endif %}
+        </div>
+        {% if review.verified_buyer %}<span class="rv-verified">✓ Verified</span>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- ── COMPLETED PROJECTS ── -->
+{% if projects %}
+<div class="projects-section-sv" id="projects" style="background:var(--surface);border-top:1px solid var(--border);">
+  <p style="font-size:0.65rem;font-weight:500;letter-spacing:0.22em;text-transform:uppercase;color:var(--accent);margin-bottom:12px;display:flex;align-items:center;gap:10px;"><span style="width:24px;height:1px;background:var(--accent);display:inline-block;"></span>Our Work</p>
+  <h2 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,4vw,3.5rem);color:var(--white);line-height:.95;letter-spacing:.03em;margin-bottom:40px;">COMPLETED <span style="color:var(--accent);">PROJECTS</span></h2>
+  <div class="projects-grid">
+    {% for project in projects %}
+    <div class="project-card-sv">
+      {% if project.project_image %}<img src="{{ url_for('uploaded_project_file', filename=project.project_image) }}" alt="{{ project.project_title }}">
+      {% else %}<div style="width:100%;height:100%;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:48px;">🏛️</div>{% endif %}
+      {% if project.project_type %}<span class="pc-type-badge">{{ project.project_type }}</span>{% endif %}
+      <div class="pc-overlay">
+        <div class="pc-title">{{ project.project_title }}</div>
+        {% if project.project_location %}<div class="pc-meta">📍 {{ project.project_location }}</div>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- CONTACT SECTION -->
+<div class="t2-contact" id="contact">
+  <div class="contact-header" style="margin-bottom:52px;">
+    <p class="contact-eyebrow">Get In Touch</p>
+    <h2 class="contact-title">CONTACT <span class="acc">US</span></h2>
+  </div>
+  <div class="contact-grid">
+    <!-- Left: details + buttons -->
+    <div>
+      <h3 class="contact-block-title">Contact Details</h3>
+      {% if user and user.phone %}
+      <div class="contact-row">
+        <div class="contact-icon">📞</div>
+        <div>
+          <div class="contact-info-label">Phone</div>
+          <div class="contact-info-value">{{ user.phone }}</div>
+        </div>
+      </div>
+      {% endif %}
+      {% if seller.whatsapp %}
+      <div class="contact-row">
+        <div class="contact-icon">💬</div>
+        <div>
+          <div class="contact-info-label">WhatsApp</div>
+          <div class="contact-info-value">{{ seller.whatsapp }}</div>
+        </div>
+      </div>
+      {% endif %}
+      {% if seller.address %}
+      <div class="contact-row">
+        <div class="contact-icon">📍</div>
+        <div>
+          <div class="contact-info-label">Address</div>
+          <div class="contact-info-value">{{ seller.address }}</div>
+        </div>
+      </div>
+      {% endif %}
+      <div class="contact-cta-row">
+        {% if user and user.phone %}
+        <a href="tel:{{ user.phone }}" class="btn-call btn-call-accent">📞 Call Now</a>
+        {% endif %}
+        {% if seller.whatsapp %}
+        <a href="https://wa.me/{{ seller.whatsapp | replace('+','') | replace(' ','') }}?text={{ ('Hello! I found your shop on StoneVista and would like to enquire about your stone collection.')|urlencode }}" target="_blank" class="btn-wa">
+          <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.553 4.112 1.522 5.836L.057 23.743a.5.5 0 0 0 .612.612l5.915-1.465A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 0 1-5.034-1.386l-.36-.214-3.733.924.944-3.712-.235-.38A9.808 9.808 0 0 1 2.182 12C2.182 6.56 6.56 2.182 12 2.182S21.818 6.56 21.818 12 17.44 21.818 12 21.818z"/></svg>
+          Chat on WhatsApp
+        </a>
+        {% endif %}
+      </div>
+    </div>
+    <!-- Right: map -->
+    <div>
+      <h3 class="contact-block-title">Location</h3>
+      <div class="contact-map">
+        {% if seller.latitude and seller.longitude %}
+          <iframe src="https://www.openstreetmap.org/export/embed.html?bbox={{ (seller.longitude|float - 0.01)|round(4) }},{{ (seller.latitude|float - 0.01)|round(4) }},{{ (seller.longitude|float + 0.01)|round(4) }},{{ (seller.latitude|float + 0.01)|round(4) }}&layer=mapnik&marker={{ seller.latitude }},{{ seller.longitude }}" allowfullscreen loading="lazy"></iframe>
+        {% elif seller.maps_link %}
+          <div class="contact-map-placeholder" style="background:var(--card);">
+            <span>📍</span>
+            <a href="{{ seller.maps_link }}" target="_blank" style="color:var(--accent); font-size:13px; text-decoration:underline;">Open in Google Maps</a>
+          </div>
+        {% else %}
+          <div class="contact-map-placeholder" style="background:var(--card);">
+            <span>📍</span>
+            <p style="color:var(--grey);">{{ seller.address or 'Location not set' }}</p>
+          </div>
+        {% endif %}
+      </div>
+      {% if seller.maps_link %}
+      <a href="{{ seller.maps_link }}" target="_blank" style="display:inline-block; margin-top:10px; font-size:12px; color:var(--accent); letter-spacing:0.08em;">↗ Open in Google Maps</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- FLOATING BUTTONS -->
+<div class="float-btns">
+  {% if seller.whatsapp %}
+  <a href="https://wa.me/{{ seller.whatsapp | replace('+','') | replace(' ','') }}?text={{ ('Hello! I would like to enquire about your stone collection.')|urlencode }}"
+     target="_blank" class="float-btn float-btn-wa">
+    <span class="float-btn-label">WhatsApp Chat</span>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.553 4.112 1.522 5.836L.057 23.743a.5.5 0 0 0 .612.612l5.915-1.465A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 0 1-5.034-1.386l-.36-.214-3.733.924.944-3.712-.235-.38A9.808 9.808 0 0 1 2.182 12C2.182 6.56 6.56 2.182 12 2.182S21.818 6.56 21.818 12 17.44 21.818 12 21.818z"/></svg>
+  </a>
+  {% endif %}
+  {% if user and user.phone %}
+  <a href="tel:{{ user.phone }}" class="float-btn float-btn-call">
+    <span class="float-btn-label">Call Seller</span>📞
+  </a>
+  {% endif %}
+</div>
+
+<!-- FOOTER -->
+<footer id="footer">
+  <div class="footer-grid">
+    <div>
+      <div class="f-brand">STONE<span>VISTA</span></div>
+      <p class="f-tagline">{{ seller.shop_name }} — premium stone and marble for modern spaces.</p>
+    </div>
+    <div class="f-col">
+      <p class="f-col-title">Address</p>
+      <p>{{ seller.address or '—' }}</p>
+    </div>
+    <div class="f-col">
+      <p class="f-col-title">Contact</p>
+      {% if user and user.phone %}<a href="tel:{{ user.phone }}">{{ user.phone }}</a>{% endif %}
+      {% if seller.whatsapp %}<a href="https://wa.me/{{ seller.whatsapp | replace('+','') | replace(' ','') }}" target="_blank">{{ seller.whatsapp }} (WhatsApp)</a>{% endif %}
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>&copy; {{ seller.shop_name }}</span>
+    <span>Powered by StoneVista</span>
+  </div>
+</footer>
+
+<!-- MARBLE DETAIL MODAL -->
+<div class="mmodal-backdrop" id="mmodal-backdrop" onclick="closeModal(event)">
+  <div class="mmodal" id="mmodal">
+    <button class="mmodal-close" onclick="closeMarbleModal()">✕</button>
+    <img class="mmodal-img" id="mmodal-img" src="" alt="">
+    <div class="mmodal-body">
+      <h2 class="mmodal-name" id="mmodal-name"></h2>
+      <p class="mmodal-sub" id="mmodal-sub">Natural Stone · Premium Quality</p>
+      <div id="mmodal-specs" style="display:grid;grid-template-columns:1fr 1fr;gap:10px 24px;margin-bottom:18px;"></div>
+      <p class="mmodal-desc" id="mmodal-desc"></p>
+      <a class="btn-wa" id="mmodal-wa" href="#" target="_blank">
+        <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.553 4.112 1.522 5.836L.057 23.743a.5.5 0 0 0 .612.612l5.915-1.465A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 0 1-5.034-1.386l-.36-.214-3.733.924.944-3.712-.235-.38A9.808 9.808 0 0 1 2.182 12C2.182 6.56 6.56 2.182 12 2.182S21.818 6.56 21.818 12 17.44 21.818 12 21.818z"/></svg>
+        Enquire on WhatsApp
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ── Carousel ── */
+  const slides = document.querySelectorAll('.slide');
+  const dotsEl = document.getElementById('dots');
+  let cur = 0;
+  if (slides.length > 1) {
+    slides.forEach((_, i) => { const d = document.createElement('button'); d.className = 'hdot' + (i === 0 ? ' active' : ''); d.onclick = () => goTo(i); dotsEl.appendChild(d); });
+    function goTo(n) { slides[cur].classList.remove('active'); dotsEl.children[cur].classList.remove('active'); cur = (n+slides.length)%slides.length; slides[cur].classList.add('active'); dotsEl.children[cur].classList.add('active'); }
+    setInterval(() => goTo(cur + 1), 5000);
+  }
+
+  /* ── Card reveal ── */
+  const cards = document.querySelectorAll('.marble-card');
+  const observer = new IntersectionObserver(entries => { entries.forEach((e,i) => { if (e.isIntersecting) { setTimeout(() => { e.target.style.opacity='1'; e.target.style.transform='scale(1)'; }, i*50); observer.unobserve(e.target); } }); }, { threshold: 0.05 });
+  cards.forEach(c => { c.style.opacity='0'; c.style.transform='scale(0.96)'; c.style.transition='opacity 0.45s ease, transform 0.45s ease'; observer.observe(c); });
+
+  /* ── Marble Modal ── */
+  function openMarbleModal(name, imgSrc, waNum, type, origin, finish, thickness, sizes, desc) {
+    document.getElementById('mmodal-img').src = imgSrc;
+    document.getElementById('mmodal-img').alt = name;
+    document.getElementById('mmodal-name').textContent = name;
+
+    const sub = [type, origin].filter(Boolean).join(' · ');
+    document.getElementById('mmodal-sub').textContent = sub || 'Natural Stone · Premium Quality';
+
+    const specs = [];
+    if (finish)    specs.push(['Finish', finish]);
+    if (thickness) specs.push(['Thickness', thickness]);
+    if (sizes)     specs.push(['Sizes', sizes]);
+    if (type)      specs.push(['Type', type]);
+    const specsEl = document.getElementById('mmodal-specs');
+    specsEl.innerHTML = specs.map(([k,v]) =>
+      `<div><div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#888;margin-bottom:3px;">${k}</div><div style="font-size:13px;color:#ddd;">${v}</div></div>`
+    ).join('');
+    specsEl.style.display = specs.length ? 'grid' : 'none';
+
+    document.getElementById('mmodal-desc').textContent = desc ||
+      'A premium natural stone from our collection. Each slab is unique. Contact us for pricing and availability.';
+
+    const msg = encodeURIComponent(`Hello! I am interested in *${name}*. Please provide more details about pricing and availability.`);
+    const waBtn = document.getElementById('mmodal-wa');
+    if (waNum) { waBtn.href = `https://wa.me/${waNum}?text=${msg}`; waBtn.style.display = 'flex'; }
+    else { waBtn.style.display = 'none'; }
+
+    document.getElementById('mmodal-backdrop').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMarbleModal() { document.getElementById('mmodal-backdrop').classList.remove('open'); document.body.style.overflow = ''; }
+  function closeModal(e) { if (e.target === document.getElementById('mmodal-backdrop')) closeMarbleModal(); }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMarbleModal(); });
+</script>
+</body>
+</html>

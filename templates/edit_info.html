@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Edit Shop Info — StoneVista</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/hero.css">
+  <link rel="stylesheet" href="/static/stonevista.css">
+  <style>
+    .field-footer{display:flex;justify-content:flex-end;margin-top:6px;}
+    .char-count{font-size:11px;color:var(--mid);}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+    @media(max-width:600px){.two-col{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+<nav>
+  <a class="brand" href="/">Stone<em>Vista</em></a>
+  <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+  <div class="nav-links" id="nav-links">
+    <a href="/dashboard">← Dashboard</a>
+    <a href="/logout">Sign Out</a>
+  </div>
+</nav>
+<div class="page-body">
+  <div class="info-page">
+    <div class="info-wrap">
+
+      <div class="info-page-header reveal">
+        <p class="section-label-sm">Dashboard · Edit</p>
+        <div class="rule"></div>
+        <h1 class="info-page-title">Shop<br><em>Information</em></h1>
+        <p class="info-page-sub">Update all details customers see on your public store page.</p>
+      </div>
+
+      <form action="/dashboard/edit/info" method="POST">
+
+        <!-- BLOCK 1: Basic Details -->
+        <div class="info-block reveal">
+          <h2 class="info-block-title">Basic Details</h2>
+          <p class="info-block-sub">Core information shown on your store header.</p>
+          <div class="field-group">
+            <label class="field-label">Shop Display Name</label>
+            <input type="text" class="field-input" name="shop_name" value="{{ seller.shop_name }}" required placeholder="e.g. Sharma Marble Works">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Shop Description</label>
+            <textarea class="field-input" name="description" rows="4" maxlength="400"
+                      style="resize:vertical;line-height:1.6;"
+                      oninput="document.getElementById('dc').textContent=this.value.length">{{ seller.description or '' }}</textarea>
+            <div class="field-footer"><span class="char-count"><span id="dc">{{ seller.description|length if seller.description else 0 }}</span> / 400</span></div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Shop Address</label>
+            <textarea class="field-input" name="address" rows="2" style="resize:vertical;line-height:1.6;" placeholder="123 Main St, Jaipur, Rajasthan 302001">{{ seller.address or '' }}</textarea>
+          </div>
+        </div>
+
+        <!-- BLOCK 2: Contact -->
+        <div class="info-block reveal">
+          <h2 class="info-block-title">Contact Details</h2>
+          <p class="info-block-sub">These become Call, WhatsApp, and Email buttons on your store.</p>
+          <div class="two-col">
+            <div class="field-group">
+              <label class="field-label">Phone (Verified)</label>
+              <input type="text" class="field-input" value="{{ user.phone }}" readonly style="color:var(--silver);cursor:default;">
+            </div>
+            <div class="field-group">
+              <label class="field-label">WhatsApp Number</label>
+              <div class="field-wa-wrap">
+                <span class="field-wa-prefix">💬</span>
+                <input type="tel" class="field-input" name="whatsapp" value="{{ seller.whatsapp or '' }}" placeholder="+91 98765 43210">
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Email Address</label>
+              <input type="email" class="field-input" name="email" value="{{ seller.email or '' }}" placeholder="shop@example.com">
+            </div>
+          </div>
+        </div>
+
+        <!-- BLOCK 3: Location -->
+        <div class="info-block reveal">
+          <h2 class="info-block-title">Shop Location</h2>
+          <p class="info-block-sub">Search your address or click the map to set your exact location.</p>
+          <div class="map-search-row">
+            <input type="text" class="field-input" id="map-search" placeholder="Search address e.g. Johari Bazaar, Jaipur">
+            <button type="button" class="btn-map-search" onclick="searchAddress()">Search</button>
+          </div>
+          <div class="map-picker-wrap">
+            <div id="map" style="width:100%;height:300px;border-radius:13px;overflow:hidden;position:relative;background:#1a1a1a;"></div>
+          </div>
+          <p class="map-hint">📍 Click anywhere on the map to drop a pin at your exact location.</p>
+          <div class="map-coords-row">
+            <input type="text" class="field-input" id="lat-display" placeholder="Latitude" readonly style="color:var(--silver);font-size:12px;">
+            <input type="text" class="field-input" id="lng-display" placeholder="Longitude" readonly style="color:var(--silver);font-size:12px;">
+          </div>
+          <input type="hidden" name="latitude"  id="latitude"  value="{{ seller.latitude or '' }}">
+          <input type="hidden" name="longitude" id="longitude" value="{{ seller.longitude or '' }}">
+          <input type="hidden" name="maps_link" id="maps_link" value="{{ seller.maps_link or '' }}">
+          {% if seller.latitude %}<p style="font-size:11px;color:var(--success);margin-top:6px;">✓ Location set: {{ seller.latitude }}, {{ seller.longitude }}</p>{% endif %}
+        </div>
+
+        <!-- BLOCK 4: Trust Info -->
+        <div class="info-block reveal">
+          <h2 class="info-block-title">Trust &amp; Business Info</h2>
+          <p class="info-block-sub">Shown in the About section to build buyer confidence.</p>
+          <div class="two-col">
+            <div class="field-group">
+              <label class="field-label">Business Type</label>
+              <div class="sv-select-wrap" id="sw-btype">
+                <select name="business_type" id="sel-btype">
+                  <option value="">Select type</option>
+                  {% for bt in ['Manufacturer','Wholesaler','Retailer','Manufacturer & Wholesaler','Exporter'] %}
+                  <option value="{{ bt }}" {% if seller.business_type == bt %}selected{% endif %}>{{ bt }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Years of Experience</label>
+              <input type="number" class="field-input" name="years_experience" min="0" max="100"
+                     value="{{ seller.years_experience or 0 }}" placeholder="e.g. 15">
+            </div>
+            <div class="field-group" style="grid-column:1/-1;">
+              <label class="field-label">Delivery Areas</label>
+              <input type="text" class="field-input" name="delivery_areas"
+                     value="{{ seller.delivery_areas or '' }}"
+                     placeholder="e.g. Rajasthan, Delhi NCR, All India">
+            </div>
+          </div>
+          <div class="field-group" style="margin-bottom:0;">
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+              <input type="checkbox" name="bulk_available" {% if seller.bulk_available %}checked{% endif %}
+                     style="width:16px;height:16px;accent-color:var(--gold-line);">
+              <span class="field-label" style="margin-bottom:0;">Bulk Orders Available</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="info-action-bar reveal">
+          <a href="/dashboard" class="btn-info-cancel">Cancel</a>
+          <button type="submit" class="btn-info-submit">Save All Changes</button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const c=document.getElementById('cursor'),r=document.getElementById('cursor-ring');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;c.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`;});
+  (function ar(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;r.style.transform=`translate(${rx}px,${ry}px) translate(-50%,-50%)`;requestAnimationFrame(ar);})();
+  const h=document.getElementById('hamburger'),m=document.getElementById('nav-links');
+  h.addEventListener('click',()=>{h.classList.toggle('open');m.classList.toggle('open');});
+  m.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{h.classList.remove('open');m.classList.remove('open');}));
+  const io=new IntersectionObserver(e=>{e.forEach((en,i)=>{if(en.isIntersecting){setTimeout(()=>en.target.classList.add('visible'),i*80);io.unobserve(en.target);}});},{threshold:.08});
+  document.querySelectorAll('.reveal').forEach(r=>io.observe(r));
+
+  // MAP
+  const existLat = {{ seller.latitude or 26.9124 }};
+  const existLng = {{ seller.longitude or 75.7873 }};
+  let map, marker;
+
+  window.addEventListener('load', () => {
+    map = L.map('map').setView([existLat, existLng], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution:'© OpenStreetMap', maxZoom:19
+    }).addTo(map);
+
+    const goldIcon = L.divIcon({
+      html:'<div style="width:18px;height:18px;background:#c8b89a;border:2px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.4);"></div>',
+      iconSize:[18,18], iconAnchor:[9,9], className:''
+    });
+
+    {% if seller.latitude %}
+    marker = L.marker([existLat, existLng], {icon:goldIcon}).addTo(map);
+    document.getElementById('lat-display').value = existLat;
+    document.getElementById('lng-display').value = existLng;
+    {% endif %}
+
+    map.on('click', function(e){ placeMarker(e.latlng.lat, e.latlng.lng, goldIcon); });
+  });
+
+  function placeMarker(lat, lng, icon) {
+    if (marker) map.removeLayer(marker);
+    if (!icon) icon = L.divIcon({html:'<div style="width:18px;height:18px;background:#c8b89a;border:2px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.4);"></div>',iconSize:[18,18],iconAnchor:[9,9],className:''});
+    marker = L.marker([lat, lng], {icon}).addTo(map);
+    document.getElementById('lat-display').value = lat.toFixed(6);
+    document.getElementById('lng-display').value = lng.toFixed(6);
+    document.getElementById('latitude').value  = lat.toFixed(6);
+    document.getElementById('longitude').value = lng.toFixed(6);
+    document.getElementById('maps_link').value = `https://www.google.com/maps?q=${lat.toFixed(6)},${lng.toFixed(6)}`;
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+      .then(r=>r.json()).then(d=>{ if(d&&d.display_name){ const addr=document.querySelector('textarea[name="address"]'); if(!addr.value) addr.value=d.display_name; } }).catch(()=>{});
+  }
+
+  function searchAddress() {
+    const q = document.getElementById('map-search').value.trim();
+    if (!q) return;
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`)
+      .then(r=>r.json()).then(data=>{
+        if (data&&data.length>0) { const lat=parseFloat(data[0].lat),lng=parseFloat(data[0].lon); map.setView([lat,lng],16); placeMarker(lat,lng); }
+        else alert('Address not found.');
+      }).catch(()=>alert('Search failed.'));
+  }
+  document.getElementById('map-search').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();searchAddress();}});
+
+  /* Custom Select */
+  function initCustomSelect(wrapId, selectId) {
+    const wrap = document.getElementById(wrapId);
+    const select = document.getElementById(selectId);
+    if (!wrap || !select) return;
+    const currentVal = select.value;
+    const currentText = select.options[select.selectedIndex]?.text || select.options[0].text;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'sv-select-btn' + (!currentVal ? ' placeholder' : '');
+    btn.innerHTML = `<span class="sv-label">${currentText}</span><span class="sv-arrow"></span>`;
+    wrap.appendChild(btn);
+    const dd = document.createElement('div');
+    dd.className = 'sv-dropdown';
+    Array.from(select.options).forEach((opt, i) => {
+      const item = document.createElement('div');
+      item.className = 'sv-option' + (i === 0 ? ' placeholder-opt' : '') + (opt.value === currentVal ? ' active' : '');
+      item.textContent = opt.text;
+      item.addEventListener('click', () => {
+        select.value = opt.value;
+        btn.querySelector('.sv-label').textContent = opt.text;
+        btn.classList.toggle('placeholder', i === 0);
+        dd.querySelectorAll('.sv-option').forEach(o => o.classList.remove('active'));
+        item.classList.add('active');
+        wrap.classList.remove('open');
+      });
+      dd.appendChild(item);
+    });
+    wrap.appendChild(dd);
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      document.querySelectorAll('.sv-select-wrap.open').forEach(w => { if(w !== wrap) w.classList.remove('open'); });
+      wrap.classList.toggle('open');
+    });
+  }
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.sv-select-wrap.open').forEach(w => w.classList.remove('open'));
+  });
+  initCustomSelect('sw-btype', 'sel-btype');
+</script>
+</body>
+</html>

@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Register — StoneVista</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="static/hero.css">
+  <style>
+    /* Phone row: input + button side by side */
+    .phone-row {
+      display: flex; gap: 10px; align-items: flex-end;
+    }
+    .phone-row .field-group { flex: 1; margin-bottom: 0; }
+
+    /* "Send OTP" button next to phone input */
+    .btn-otp {
+      flex-shrink: 0;
+      padding: 0 18px;
+      height: 46px;
+      background: transparent;
+      color: var(--gold-line);
+      border: 1px solid rgba(200,184,154,0.35);
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px; font-weight: 500; letter-spacing: .5px;
+      cursor: pointer; white-space: nowrap;
+      transition: background .2s, border-color .2s;
+    }
+    .btn-otp:hover { background: rgba(200,184,154,0.08); border-color: var(--gold-line); }
+    .btn-otp:disabled { opacity: .4; pointer-events: none; }
+    .btn-otp.sent { color: #5ecc7b; border-color: rgba(94,204,123,0.4); background: rgba(94,204,123,0.05); }
+
+    /* 6 individual digit boxes for OTP input */
+    .otp-group { display: none; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+    .otp-group.visible { display: flex; }
+
+    .otp-boxes { display: flex; gap: 6px; width: 100%; }
+    .otp-box {
+      flex: 1; min-width: 0; /* prevents flex overflow */
+      height: 48px;
+      text-align: center; font-size: 20px; font-weight: 500;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px; color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      outline: none; caret-color: var(--gold-line);
+      transition: border-color .2s, box-shadow .2s;
+      padding: 0; /* remove any default padding */
+    }
+    .otp-box:focus {
+      border-color: rgba(200,184,154,.5);
+      box-shadow: 0 0 0 3px rgba(200,184,154,.08);
+    }
+
+    /* Timer and resend row below OTP boxes */
+    .otp-hint {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 11px; color: rgba(255,255,255,0.4);
+    }
+    .btn-resend {
+      font-size: 11px; color: rgba(255,255,255,0.6);
+      background: none; border: none;
+      cursor: pointer; text-decoration: underline;
+      font-family: 'DM Sans', sans-serif;
+      transition: color .2s;
+    }
+    .btn-resend:hover { color: #fff; }
+    .btn-resend:disabled { opacity: .4; pointer-events: none; }
+
+    /* Inline error banner inside the card */
+    .inline-error {
+      font-size: 12px; color: #ff6b6b;
+      background: rgba(255,107,107,0.08);
+      border: 1px solid rgba(255,107,107,0.2);
+      border-radius: 8px; padding: 9px 14px;
+      margin-bottom: 16px; display: none;
+    }
+    .inline-error.visible { display: block; }
+
+    /* Progress dots — 3 steps */
+    .step-dots { display: flex; gap: 6px; justify-content: center; margin-bottom: 28px; }
+    .step-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      transition: background .3s, width .3s, border-radius .3s;
+    }
+    .step-dot.active { background: var(--gold-line); width: 20px; border-radius: 3px; }
+    .step-dot.done   { background: rgba(94,204,123,0.5); }
+
+    /* Firebase reCAPTCHA — must exist in DOM but stays hidden */
+    #recaptcha-container { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<!-- NAVBAR -->
+<nav>
+  <a class="brand" href="/">Stone<em>Vista</em></a>
+  <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+  <div class="nav-links" id="nav-links">
+    <a href="/#about">About</a>
+    <a href="/#offer">Features</a>
+    <a href="/#process">How It Works</a>
+    <a href="/login">Sign In</a>
+    <a href="/register" class="nav-cta">Get Started</a>
+  </div>
+</nav>
+
+<!--
+  REGISTER FLOW:
+  Step 1 (this page) → full name + phone → OTP verify
+  Step 2 → /credentials → username + password
+  Step 3 → /info → shop name, address, photos (shop name collected HERE not above)
+  Step 4 → /selecttemp → choose template
+  Step 5 → /dashboard
+-->
+<div class="page-body form-page">
+  <div class="form-card reveal">
+
+    <div class="step-dots">
+      <div class="step-dot active" id="dot-1"></div>
+      <div class="step-dot"        id="dot-2"></div>
+      <div class="step-dot"        id="dot-3"></div>
+    </div>
+
+    <p class="form-eyebrow" id="card-eyebrow">Create Your Account</p>
+    <div class="rule"></div>
+    <h1 class="form-title" id="card-title">Join<br><em>StoneVista</em></h1>
+    <p class="form-subtitle" id="card-sub">
+      Enter your name and phone number to get started.
+    </p>
+
+    <div class="inline-error" id="inline-error"></div>
+
+    <!-- FIELD: Full Name
+         Saved to User.full_name in the database.
+         Shop name is collected later in /info — not here. -->
+    <div class="field-group" id="field-name">
+      <label class="field-label" for="full_name">Your Full Name</label>
+      <input type="text" class="field-input" id="full_name"
+             placeholder="e.g. Rajiv Sharma"
+             autocomplete="name">
+    </div>
+
+    <!-- FIELD: Phone + Send OTP button in one row -->
+    <div class="phone-row" id="field-phone">
+      <div class="field-group">
+        <label class="field-label" for="phone-number">Mobile Number</label>
+        <input type="tel" class="field-input" id="phone-number"
+               placeholder="+91 98765 43210"
+               autocomplete="tel" maxlength="15">
+      </div>
+      <button type="button" class="btn-otp" id="btn-send-otp"
+              onclick="sendOTP()">Send OTP</button>
+    </div>
+
+    <!-- Firebase requires this div to exist in the DOM -->
+    <div id="recaptcha-container"></div>
+
+    <!-- OTP boxes — hidden until OTP is sent -->
+    <div class="otp-group" id="otp-group">
+      <label class="field-label">Enter 6-Digit OTP</label>
+      <div class="otp-boxes">
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" id="otp1">
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" id="otp2">
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" id="otp3">
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" id="otp4">
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" id="otp5">
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" id="otp6">
+      </div>
+      <div class="otp-hint">
+        <span>Expires in <strong id="otp-timer">2:00</strong></span>
+        <button type="button" class="btn-resend" id="btn-resend"
+                disabled onclick="resendOTP()">Resend OTP</button>
+      </div>
+    </div>
+
+    <!-- Before OTP sent: this button shows -->
+    <button type="button" class="btn-form-primary" id="btn-next"
+            onclick="sendOTP()">
+      Send OTP
+    </button>
+
+    <!-- After OTP sent: this button shows, above one hides -->
+    <button type="button" class="btn-form-primary" id="btn-verify"
+            style="display:none;" onclick="verifyOTP()">
+      Verify &amp; Continue →
+    </button>
+
+    <div class="form-divider"><span>or</span></div>
+    <a href="/login" class="btn-form-ghost">Sign In to Existing Account</a>
+
+  </div>
+</div>
+
+
+<!-- Firebase SDKs — load BEFORE the script below -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+<script>
+/* ════════════════════════════════════════════════════
+   FIREBASE SETUP
+════════════════════════════════════════════════════ */
+const firebaseConfig = {
+  apiKey:            "AIzaSyAvuiXgpAMLcNDR6xvZHx0gBYgyIP0XelI",
+  authDomain:        "stonevista-2ccc9.firebaseapp.com",
+  projectId:         "stonevista-2ccc9",
+  storageBucket:     "stonevista-2ccc9.firebasestorage.app",
+  messagingSenderId: "916636845926",
+  appId:             "1:916636845926:web:9891a5e1141c1a93566aa7"
+};
+firebase.initializeApp(firebaseConfig);
+
+// Create reCAPTCHA ONCE at page load.
+// If created inside sendOTP() it re-renders on every click → causes delay/hang.
+let appVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+  size: 'invisible',
+  callback: function() {}
+});
+
+
+/* ════════════════════════════════════════════════════
+   GLOBAL STATE
+════════════════════════════════════════════════════ */
+// Firebase gives us this after sending OTP.
+// We use it in verifyOTP() to confirm the code the user types.
+let confirmationResult = null;
+let timerInterval      = null;
+
+
+/* ════════════════════════════════════════════════════
+   DOM REFERENCES
+════════════════════════════════════════════════════ */
+const errBox     = document.getElementById('inline-error');
+const btnNext    = document.getElementById('btn-next');
+const btnSendOtp = document.getElementById('btn-send-otp');
+const btnVerify  = document.getElementById('btn-verify');
+const otpGroup   = document.getElementById('otp-group');
+const otpBoxes   = document.querySelectorAll('.otp-box');
+const timerEl    = document.getElementById('otp-timer');
+const btnResend  = document.getElementById('btn-resend');
+const dot1       = document.getElementById('dot-1');
+const dot2       = document.getElementById('dot-2');
+const dot3       = document.getElementById('dot-3');
+
+
+/* ════════════════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════════════════ */
+function showError(msg) {
+  errBox.textContent = msg;
+  errBox.classList.add('visible');
+}
+
+function clearError() {
+  errBox.textContent = '';
+  errBox.classList.remove('visible');
+}
+
+// Countdown timer — enables Resend when it hits 0
+function startTimer() {
+  let t = 120;
+  btnResend.disabled = true;
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    t--;
+    const m = Math.floor(t / 60);
+    const s = t % 60;
+    timerEl.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+    if (t <= 0) {
+      clearInterval(timerInterval);
+      timerEl.textContent = 'Expired';
+      btnResend.disabled = false;
+    }
+  }, 1000);
+}
+
+// Join all 6 box values into one string e.g. "483921"
+function getOTP() {
+  return Array.from(otpBoxes).map(b => b.value).join('');
+}
+
+// Switch card UI from "fill details" mode to "enter OTP" mode
+function switchToOTPView(phone) {
+  btnNext.style.display   = 'none';
+  btnVerify.style.display = 'block';
+  otpGroup.classList.add('visible');
+
+  dot1.classList.remove('active'); dot1.classList.add('done');
+  dot2.classList.remove('active'); dot2.classList.add('done');
+  dot3.classList.add('active');
+
+  document.getElementById('card-eyebrow').textContent = 'Verify Your Number';
+  document.getElementById('card-title').innerHTML     = 'Enter the<br><em>OTP sent</em>';
+  document.getElementById('card-sub').textContent     =
+    `We sent a 6-digit code to ${phone}. Check your messages.`;
+
+  // Lock fields — can't edit name/phone while verifying
+  document.getElementById('full_name').disabled    = true;
+  document.getElementById('phone-number').disabled = true;
+  btnSendOtp.disabled = true;
+
+  startTimer();
+  otpBoxes[0].focus();
+}
+
+
+/* ════════════════════════════════════════════════════
+   OTP BOX BEHAVIOUR
+   Auto-advance, backspace navigation, paste support
+════════════════════════════════════════════════════ */
+otpBoxes.forEach((box, index) => {
+
+  box.addEventListener('input', (e) => {
+    e.target.value = e.target.value.replace(/\D/g, ''); // digits only
+    if (e.target.value && index < otpBoxes.length - 1) {
+      otpBoxes[index + 1].focus(); // jump to next box
+    }
+  });
+
+  box.addEventListener('keydown', (e) => {
+    if (e.key === 'Backspace' && !box.value && index > 0) {
+      otpBoxes[index - 1].focus(); // go back on backspace
+    }
+  });
+
+  box.addEventListener('paste', (e) => {
+    e.preventDefault();
+    const digits = (e.clipboardData || window.clipboardData)
+                    .getData('text').replace(/\D/g, '').slice(0, 6);
+    digits.split('').forEach((char, i) => {
+      if (otpBoxes[i]) otpBoxes[i].value = char;
+    });
+    otpBoxes[Math.min(digits.length, 5)].focus();
+  });
+});
+
+
+/* ════════════════════════════════════════════════════
+   sendOTP()
+   1. Validate name + phone
+   2. Create invisible reCAPTCHA (Firebase requires it)
+   3. Firebase sends SMS
+   4. Store confirmationResult + switch UI
+════════════════════════════════════════════════════ */
+function sendOTP() {
+  clearError();
+
+  const fullName = document.getElementById('full_name').value.trim();
+  const phone    = document.getElementById('phone-number').value.trim();
+
+  // Validate — shop_name removed completely, not needed here
+  if (!fullName) { showError('Please enter your full name.');     return; }
+  if (!phone)    { showError('Please enter your mobile number.'); return; }
+  if (!phone.startsWith('+')) {
+    showError('Include country code (e.g. +91 for India)');
+    return;
+  }
+
+  // Disable to prevent double clicks
+  btnNext.disabled       = true;
+  btnNext.textContent    = 'Sending…';
+  btnSendOtp.disabled    = true;
+  btnSendOtp.textContent = '…';
+
+  // Firebase sends the SMS — uses the global appVerifier created at page load
+  firebase.auth().signInWithPhoneNumber(phone, appVerifier)
+    .then(function(result) {
+      confirmationResult = result; // store the "ticket" for verifyOTP()
+
+      // Save name in sessionStorage — sent to Flask after OTP verify
+      // shop_name NOT stored here — collected later in /info
+      sessionStorage.setItem('reg_full_name', fullName);
+      sessionStorage.setItem('reg_phone', phone);
+
+      switchToOTPView(phone);
+    })
+    .catch(function(error) {
+      console.error('sendOTP error:', error);
+      showError('Could not send OTP: ' + error.message);
+
+      btnNext.disabled       = false;
+      btnNext.textContent    = 'Send OTP';
+      btnSendOtp.disabled    = false;
+      btnSendOtp.textContent = 'Send OTP';
+
+      // Reset reCAPTCHA so user can try again
+      appVerifier.render().then(widgetId => grecaptcha.reset(widgetId));
+    });
+}
+
+
+/* ════════════════════════════════════════════════════
+   verifyOTP()
+   1. Collect 6 digits
+   2. Firebase confirms code
+   3. POST phone + full_name to Flask /verify_phone
+   4. Flask saves to session → redirect to /credentials
+════════════════════════════════════════════════════ */
+function verifyOTP() {
+  clearError();
+
+  const code = getOTP();
+  if (code.length < 6) {
+    showError('Please enter all 6 digits.');
+    return;
+  }
+
+  btnVerify.disabled    = true;
+  btnVerify.textContent = 'Verifying…';
+
+  confirmationResult.confirm(code)
+    .then(function(result) {
+      const verifiedPhone   = result.user.phoneNumber;
+      btnVerify.textContent = 'Verified ✓';
+
+      // POST to Flask — phone is verified by Firebase at this point
+      fetch('/verify_phone', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone:     verifiedPhone,
+          full_name: sessionStorage.getItem('reg_full_name') || ''
+          // shop_name removed — user fills it in /info instead
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          sessionStorage.removeItem('reg_full_name');
+          sessionStorage.removeItem('reg_phone');
+          clearInterval(timerInterval);
+          window.location.href = '/credentials'; // next step
+        } else {
+          showError(data.error || 'Something went wrong. Please try again.');
+          btnVerify.disabled    = false;
+          btnVerify.textContent = 'Verify & Continue →';
+        }
+      })
+      .catch(function() {
+        showError('Network error. Please check your connection.');
+        btnVerify.disabled    = false;
+        btnVerify.textContent = 'Verify & Continue →';
+      });
+    })
+    .catch(function(error) {
+      console.error('verifyOTP error:', error);
+      showError('Incorrect OTP. Please check and try again.');
+      otpBoxes.forEach(b => b.value = '');
+      otpBoxes[0].focus();
+      btnVerify.disabled    = false;
+      btnVerify.textContent = 'Verify & Continue →';
+    });
+}
+
+
+/* ════════════════════════════════════════════════════
+   resendOTP()
+   Re-enables fields and calls sendOTP() again
+════════════════════════════════════════════════════ */
+function resendOTP() {
+  otpBoxes.forEach(b => b.value = '');
+  clearError();
+  document.getElementById('full_name').disabled    = false;
+  document.getElementById('phone-number').disabled = false;
+  btnSendOtp.disabled = false;
+  btnNext.disabled    = false;
+  sendOTP();
+}
+
+
+/* ════════════════════════════════════════════════════
+   STEP DOT HINTS
+   full_name = dot 1, phone = dot 2
+════════════════════════════════════════════════════ */
+document.getElementById('full_name').addEventListener('focus', () => {
+  dot1.classList.add('active');
+  dot2.classList.remove('active');
+  dot3.classList.remove('active');
+});
+
+document.getElementById('phone-number').addEventListener('focus', () => {
+  dot1.classList.remove('active'); dot1.classList.add('done');
+  dot2.classList.add('active');
+  dot3.classList.remove('active');
+});
+
+
+/* ════════════════════════════════════════════════════
+   CURSOR + NAVBAR
+════════════════════════════════════════════════════ */
+const cursor = document.getElementById('cursor');
+const ring   = document.getElementById('cursor-ring');
+let mx = 0, my = 0, rx = 0, ry = 0;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.transform = `translate(${mx}px,${my}px) translate(-50%,-50%)`;
+});
+
+(function animateRing() {
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  ring.style.transform = `translate(${rx}px,${ry}px) translate(-50%,-50%)`;
+  requestAnimationFrame(animateRing);
+})();
+
+const ham  = document.getElementById('hamburger');
+const menu = document.getElementById('nav-links');
+ham.addEventListener('click', () => {
+  ham.classList.toggle('open');
+  menu.classList.toggle('open');
+});
+menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+  ham.classList.remove('open');
+  menu.classList.remove('open');
+}));
+
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      io.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(r => io.observe(r));
+</script>
+
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Customer Reviews — StoneVista</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/hero.css">
+  <style>
+    .review-list-card {
+      background: var(--space-mid); border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px; padding: 20px 24px; margin-bottom: 12px;
+      display: flex; align-items: flex-start; gap: 20px; flex-wrap: wrap;
+    }
+    .review-stars-display { color: #f0a500; font-size: 14px; letter-spacing: 2px; }
+    .review-meta { font-size: 12px; color: var(--mid); margin-top: 3px; }
+    .review-body { flex: 1; min-width: 200px; }
+    .review-text-display { font-size: 13px; color: var(--silver); font-style: italic; line-height: 1.6; margin-top: 6px; }
+    .verified-tag { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--success); background: rgba(94,204,123,0.1); border: 1px solid rgba(94,204,123,0.2); padding: 3px 10px; border-radius: 980px; }
+    .star-select { display: flex; gap: 6px; margin-top: 6px; }
+    .star-select input[type=radio] { display: none; }
+    .star-select label { font-size: 22px; color: var(--space-grey); cursor: pointer; transition: color .15s; }
+    .star-select input:checked ~ label,
+    .star-select label:hover,
+    .star-select label:hover ~ label { color: #f0a500 !important; }
+    .star-select { flex-direction: row-reverse; }
+    .star-select label:hover,
+    .star-select label:hover ~ label { color: #f0a500; }
+  </style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<nav>
+  <a class="brand" href="/">Stone<em>Vista</em></a>
+  <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+  <div class="nav-links" id="nav-links">
+    <a href="/dashboard">← Dashboard</a>
+    <a href="/logout">Sign Out</a>
+  </div>
+</nav>
+
+<div class="page-body">
+  <div class="info-page">
+    <div class="info-wrap">
+
+      <div class="info-page-header reveal">
+        <p class="section-label-sm">Dashboard · Reviews</p>
+        <div class="rule"></div>
+        <h1 class="info-page-title">Customer<br><em>Reviews</em></h1>
+        <p class="info-page-sub">Add and manage reviews that appear on your public store page.</p>
+      </div>
+
+      <!-- ADD NEW REVIEW -->
+      <div class="info-block reveal">
+        <h2 class="info-block-title">Add New Review</h2>
+        <p class="info-block-sub">Collect feedback from your customers and display it on your store.</p>
+
+        <form action="/dashboard/reviews" method="POST">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+            <div class="field-group">
+              <label class="field-label">Customer Name *</label>
+              <input type="text" class="field-input" name="reviewer_name" required placeholder="e.g. Rahul Sharma">
+            </div>
+            <div class="field-group">
+              <label class="field-label">City</label>
+              <input type="text" class="field-input" name="reviewer_city" placeholder="e.g. Jaipur">
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+            <div class="field-group">
+              <label class="field-label">Rating</label>
+              <div class="star-select">
+                {% for i in [5,4,3,2,1] %}
+                <input type="radio" name="rating" id="star{{ i }}" value="{{ i }}" {% if i == 5 %}checked{% endif %}>
+                <label for="star{{ i }}">★</label>
+                {% endfor %}
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Date</label>
+              <input type="date" class="field-input" name="review_date"
+                     value="{{ now.strftime('%Y-%m-%d') if now else '' }}"
+                     style="cursor:pointer;">
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Review Text</label>
+            <textarea class="field-input" name="review_text" rows="3"
+                      placeholder="What did the customer say about your stone quality, service, etc.?"
+                      style="resize:vertical; line-height:1.6;"></textarea>
+          </div>
+
+          <div class="field-group">
+            <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+              <input type="checkbox" name="verified_buyer" style="width:16px;height:16px;accent-color:var(--gold-line);">
+              <span class="field-label" style="margin-bottom:0;">Mark as Verified Buyer</span>
+            </label>
+          </div>
+
+          <div class="info-action-bar" style="border-top:none; padding-top:8px;">
+            <a href="/dashboard" class="btn-info-cancel">Cancel</a>
+            <button type="submit" class="btn-info-submit">Add Review</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- EXISTING REVIEWS -->
+      {% if reviews %}
+      <div class="info-block reveal">
+        <h2 class="info-block-title">{{ reviews|length }} Review{% if reviews|length != 1 %}s{% endif %}</h2>
+        <p class="info-block-sub">These are shown on your public store page.</p>
+
+        {% for review in reviews %}
+        <div class="review-list-card">
+          <div class="review-body">
+            <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+              <div class="review-stars-display">{{ '★' * review.rating }}{{ '☆' * (5 - review.rating) }}</div>
+              {% if review.verified_buyer %}
+              <span class="verified-tag">✓ Verified Buyer</span>
+              {% endif %}
+            </div>
+            <div class="review-meta">
+              <strong style="color:var(--white);">{{ review.reviewer_name }}</strong>
+              {% if review.reviewer_city %} — {{ review.reviewer_city }}{% endif %}
+              &nbsp;·&nbsp; {{ review.review_date.strftime('%d %b %Y') if review.review_date else '' }}
+            </div>
+            {% if review.review_text %}
+            <p class="review-text-display">"{{ review.review_text }}"</p>
+            {% endif %}
+          </div>
+          <form action="/dashboard/reviews/delete/{{ review.id }}" method="POST">
+            <button type="submit" class="btn-info-cancel"
+                    style="padding:6px 14px; font-size:11px; color:var(--error); border-color:rgba(255,107,107,0.2);"
+                    onclick="return confirm('Delete this review?')">Delete</button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+<script>
+  const c=document.getElementById('cursor'),r=document.getElementById('cursor-ring');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;c.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`;});
+  (function ar(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;r.style.transform=`translate(${rx}px,${ry}px) translate(-50%,-50%)`;requestAnimationFrame(ar);})();
+  const h=document.getElementById('hamburger'),m=document.getElementById('nav-links');
+  h.addEventListener('click',()=>{h.classList.toggle('open');m.classList.toggle('open');});
+  m.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{h.classList.remove('open');m.classList.remove('open');}));
+  const io=new IntersectionObserver(e=>{e.forEach((en,i)=>{if(en.isIntersecting){setTimeout(()=>en.target.classList.add('visible'),i*80);io.unobserve(en.target);}});},{threshold:.08});
+  document.querySelectorAll('.reveal').forEach(r=>io.observe(r));
+
+  // Set today's date as default
+  const dateInput = document.querySelector('input[name="review_date"]');
+  if (dateInput && !dateInput.value) {
+    dateInput.value = new Date().toISOString().split('T')[0];
+  }
+</script>
+</body>
+</html>

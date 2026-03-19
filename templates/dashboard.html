@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Dashboard — StoneVista</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/hero.css">
+  <style>
+    .dash-page{min-height:100vh;padding-top:52px;background:var(--black);}
+    .dash-wrap{max-width:1080px;margin:0 auto;padding:60px 48px 100px;}
+    .dash-header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:52px;padding-bottom:40px;border-bottom:1px solid rgba(255,255,255,0.06);flex-wrap:wrap;}
+    .dash-eyebrow{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--silver);margin-bottom:10px;}
+    .dash-title{font-family:'Cormorant Garamond',serif;font-size:clamp(28px,4vw,44px);font-weight:300;line-height:1.1;color:var(--white);}
+    .dash-title em{font-style:italic;color:var(--silver);}
+    .dash-live-link{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:rgba(94,204,123,0.08);border:1px solid rgba(94,204,123,0.25);border-radius:980px;font-size:12px;font-weight:500;color:var(--success);text-decoration:none;transition:background .2s,border-color .2s;white-space:nowrap;}
+    .dash-live-link:hover{background:rgba(94,204,123,0.15);border-color:rgba(94,204,123,0.5);}
+    .dash-live-dot{width:6px;height:6px;border-radius:50%;background:var(--success);animation:livePulse 2s ease infinite;}
+    @keyframes livePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
+    .dash-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:48px;}
+    .stat-card{background:var(--space);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:28px;position:relative;overflow:hidden;}
+    .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(to right,transparent,rgba(200,184,154,0.2),transparent);}
+    .stat-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--mid);margin-bottom:12px;}
+    .stat-value{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--white);line-height:1.1;word-break:break-word;}
+    .stat-value em{font-style:italic;color:var(--gold-line);}
+    .stat-sub{font-size:12px;color:var(--mid);margin-top:6px;}
+    .dash-section-title{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--silver);margin-bottom:20px;}
+    .dash-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:48px;}
+    .dash-card{background:var(--space);border:1px solid rgba(255,255,255,0.07);border-radius:20px;padding:36px;position:relative;overflow:hidden;text-decoration:none;display:flex;flex-direction:column;transition:border-color .3s,transform .3s,box-shadow .3s;}
+    .dash-card::before{content:'';position:absolute;top:0;left:8%;right:8%;height:1px;background:linear-gradient(to right,transparent,rgba(200,184,154,0.15),transparent);}
+    .dash-card:hover{border-color:rgba(200,184,154,0.3);transform:translateY(-3px);box-shadow:0 16px 48px rgba(0,0,0,0.4);}
+    .dash-card-icon{width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:20px;transition:background .3s,border-color .3s;}
+    .dash-card:hover .dash-card-icon{background:rgba(200,184,154,0.1);border-color:rgba(200,184,154,0.2);}
+    .dash-card-title{font-size:16px;font-weight:500;color:var(--white);margin-bottom:6px;}
+    .dash-card-desc{font-size:13px;font-weight:300;color:var(--mid);line-height:1.6;flex:1;}
+    .dash-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.05);}
+    .dash-card-meta{font-size:11px;color:var(--space-grey);}
+    .dash-card-arrow{font-size:16px;color:var(--mid);transition:color .2s,transform .2s;}
+    .dash-card:hover .dash-card-arrow{color:var(--gold-line);transform:translateX(4px);}
+    .dash-info-panel{background:var(--space);border:1px solid rgba(255,255,255,0.07);border-radius:20px;padding:36px;position:relative;}
+    .dash-info-panel::before{content:'';position:absolute;top:0;left:8%;right:8%;height:1px;background:linear-gradient(to right,transparent,rgba(200,184,154,0.2),transparent);}
+    .dash-info-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:28px;}
+    .dash-info-heading{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:var(--white);}
+    .dash-edit-link{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--gold-line);text-decoration:none;border:1px solid rgba(200,184,154,0.25);padding:6px 14px;border-radius:980px;transition:background .2s,border-color .2s;white-space:nowrap;flex-shrink:0;}
+    .dash-edit-link:hover{background:rgba(200,184,154,0.08);border-color:var(--gold-line);}
+    .dash-info-row{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+    .dash-info-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--mid);margin-bottom:6px;}
+    .dash-info-value{font-size:14px;font-weight:300;color:var(--silver);line-height:1.55;}
+    .dash-info-value.empty{color:var(--space-grey);font-style:italic;}
+    .template-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:500;padding:4px 12px;border-radius:980px;background:rgba(200,184,154,0.1);border:1px solid rgba(200,184,154,0.2);color:var(--gold-line);}
+    @media(max-width:768px){.dash-wrap{padding:40px 20px 80px;}.dash-header{flex-direction:column;align-items:flex-start;}.dash-stats{grid-template-columns:1fr 1fr;}.dash-grid{grid-template-columns:1fr;}.dash-info-row{grid-template-columns:1fr;}}
+    @media(max-width:480px){.dash-stats{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+<nav>
+  <a class="brand" href="/">Stone<em>Vista</em></a>
+  <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+  <div class="nav-links" id="nav-links">
+    <a href="/seller/{{ user.username }}" target="_blank">My Store</a>
+    <a href="/logout">Sign Out</a>
+  </div>
+</nav>
+<div class="dash-page"><div class="dash-wrap">
+  {% with messages = get_flashed_messages() %}{% if messages %}{% for message in messages %}
+    <div class="flash flash-success" style="margin-bottom:24px;">{{ message }}</div>
+  {% endfor %}{% endif %}{% endwith %}
+  <div class="dash-header reveal">
+    <div>
+      <p class="dash-eyebrow">Seller Dashboard</p>
+      <div class="rule"></div>
+      <h1 class="dash-title">Welcome back,<br><em>{{ user.username }}</em></h1>
+    </div>
+    <a href="/seller/{{ user.username }}" target="_blank" class="dash-live-link">
+      <span class="dash-live-dot"></span>View Live Store ↗
+    </a>
+  </div>
+  <div class="dash-stats reveal">
+    <div class="stat-card">
+      <p class="stat-label">Shop Name</p>
+      <div class="stat-value">{{ seller.shop_name[:18] }}{% if seller.shop_name|length > 18 %}…{% endif %}</div>
+      <p class="stat-sub">Public display name</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-label">Reviews · Projects</p>
+      <div class="stat-value"><em>{{ reviews|length }}</em> · {{ projects|length }}</div>
+      <p class="stat-sub">Trust signals on store</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-label">Active Theme</p>
+      <div class="stat-value"><em>{{ seller.selected_template|replace('template','T') }}</em></div>
+      <p class="stat-sub">{{ seller.selected_template }}</p>
+    </div>
+  </div>
+  <p class="dash-section-title reveal">Manage Your Store</p>
+  <div class="dash-grid">
+    <a href="/dashboard/edit/info" class="dash-card reveal">
+      <div class="dash-card-icon">✏️</div>
+      <h2 class="dash-card-title">Shop Information</h2>
+      <p class="dash-card-desc">Name, address, WhatsApp, email, location map, and trust details like years of experience.</p>
+      <div class="dash-card-footer"><span class="dash-card-meta">Name · Contact · Trust · Map</span><span class="dash-card-arrow">→</span></div>
+    </a>
+    <a href="/dashboard/edit/photos" class="dash-card reveal">
+      <div class="dash-card-icon">📷</div>
+      <h2 class="dash-card-title">Shop Photos</h2>
+      <p class="dash-card-desc">Add or remove showroom photos for the hero carousel on your store page.</p>
+      <div class="dash-card-footer"><span class="dash-card-meta">Upload · Remove · Manage</span><span class="dash-card-arrow">→</span></div>
+    </a>
+    <a href="/dashboard/edit/marbles" class="dash-card reveal">
+      <div class="dash-card-icon">🪨</div>
+      <h2 class="dash-card-title">Stone Catalogue</h2>
+      <p class="dash-card-desc">Select stones and edit each marble's name, type, origin, finish, thickness, and sizes.</p>
+      <div class="dash-card-footer"><span class="dash-card-meta">Select · Details · Specs</span><span class="dash-card-arrow">→</span></div>
+    </a>
+    <a href="/dashboard/edit/template" class="dash-card reveal">
+      <div class="dash-card-icon">🎨</div>
+      <h2 class="dash-card-title">Store Theme</h2>
+      <p class="dash-card-desc">Switch between Minimal Luxury and Modern Dark templates.</p>
+      <div class="dash-card-footer"><span class="dash-card-meta">Current: <span class="template-badge">{{ seller.selected_template }}</span></span><span class="dash-card-arrow">→</span></div>
+    </a>
+    <a href="/dashboard/reviews" class="dash-card reveal">
+      <div class="dash-card-icon">⭐</div>
+      <h2 class="dash-card-title">Customer Reviews</h2>
+      <p class="dash-card-desc">Add customer feedback with star ratings. Builds trust with new visitors.</p>
+      <div class="dash-card-footer"><span class="dash-card-meta">{{ reviews|length }} review{% if reviews|length != 1 %}s{% endif %} added</span><span class="dash-card-arrow">→</span></div>
+    </a>
+    <a href="/dashboard/projects" class="dash-card reveal">
+      <div class="dash-card-icon">🏛️</div>
+      <h2 class="dash-card-title">Completed Projects</h2>
+      <p class="dash-card-desc">Showcase hotels, villas, temples, and houses fitted with your stone.</p>
+      <div class="dash-card-footer"><span class="dash-card-meta">{{ projects|length }} project{% if projects|length != 1 %}s{% endif %} added</span><span class="dash-card-arrow">→</span></div>
+    </a>
+  </div>
+  <p class="dash-section-title reveal">Shop Overview</p>
+  <div class="dash-info-panel reveal">
+    <div class="dash-info-top">
+      <h3 class="dash-info-heading">Current Shop Details</h3>
+      <a href="/dashboard/edit/info" class="dash-edit-link">Edit ✏️</a>
+    </div>
+    <div class="dash-info-row">
+      <div><p class="dash-info-label">Shop Name</p><p class="dash-info-value {% if not seller.shop_name %}empty{% endif %}">{{ seller.shop_name or 'Not set' }}</p></div>
+      <div><p class="dash-info-label">WhatsApp</p><p class="dash-info-value {% if not seller.whatsapp %}empty{% endif %}">{{ seller.whatsapp or 'Not set' }}</p></div>
+      <div><p class="dash-info-label">Address</p><p class="dash-info-value {% if not seller.address %}empty{% endif %}">{{ seller.address or 'Not set' }}</p></div>
+      <div><p class="dash-info-label">Business</p><p class="dash-info-value {% if not seller.business_type %}empty{% endif %}">{{ seller.business_type or 'Not set' }}{% if seller.years_experience %} · {{ seller.years_experience }} yrs{% endif %}</p></div>
+      <div style="grid-column:1/-1;"><p class="dash-info-label">Description</p><p class="dash-info-value {% if not seller.description %}empty{% endif %}">{{ seller.description or 'No description added yet.' }}</p></div>
+    </div>
+  </div>
+</div></div>
+<script>
+  const cursor=document.getElementById('cursor'),ring=document.getElementById('cursor-ring');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cursor.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`;});
+  (function ar(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.transform=`translate(${rx}px,${ry}px) translate(-50%,-50%)`;requestAnimationFrame(ar);})();
+  const ham=document.getElementById('hamburger'),menu=document.getElementById('nav-links');
+  ham.addEventListener('click',()=>{ham.classList.toggle('open');menu.classList.toggle('open');});
+  menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{ham.classList.remove('open');menu.classList.remove('open');}));
+  const io=new IntersectionObserver(entries=>{entries.forEach((e,i)=>{if(e.isIntersecting){setTimeout(()=>e.target.classList.add('visible'),i*80);io.unobserve(e.target);}});},{threshold:.08});
+  document.querySelectorAll('.reveal').forEach(r=>io.observe(r));
+</script>
+</body>
+</html>
