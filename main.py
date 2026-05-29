@@ -5,11 +5,19 @@ from werkzeug.utils import secure_filename
 from datetime import datetime
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:1234@localhost:5432/stonevista'
+
+# Render gives DATABASE_URL env var; fall back to local for dev
+database_url = os.environ.get('DATABASE_URL', 'postgresql://postgres:1234@localhost:5432/stonevista')
+if database_url.startswith('postgres://'):
+    database_url = database_url.replace('postgres://', 'postgresql://', 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+
 app.config['UPLOAD_FOLDER']  = 'uploads/sellers'
 app.config['MARBLE_FOLDER']  = 'uploads/marbles'
 app.config['PROJECT_FOLDER'] = 'uploads/projects'
-app.secret_key = secrets.token_hex(32)
+
+# Fixed secret key so sessions survive Render restarts
+app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
 
 os.makedirs(app.config['UPLOAD_FOLDER'],  exist_ok=True)
 os.makedirs(app.config['MARBLE_FOLDER'],  exist_ok=True)
