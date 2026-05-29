@@ -3,33 +3,17 @@ from flask_sqlalchemy import SQLAlchemy
 import os, bcrypt, secrets
 from werkzeug.utils import secure_filename
 from datetime import datetime
-from dotenv import load_dotenv
-import cloudinary
-import cloudinary.uploader
-import cloudinary.api
-
-# Load environment variables
-load_dotenv()
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:1234@localhost:5432/stonevista'
+app.config['UPLOAD_FOLDER']  = 'uploads/sellers'
+app.config['MARBLE_FOLDER']  = 'uploads/marbles'
+app.config['PROJECT_FOLDER'] = 'uploads/projects'
+app.secret_key = secrets.token_hex(32)
 
-# ═══════════════════════════════════════════════════
-# CONFIGURATION
-# ═══════════════════════════════════════════════════
-
-# Database - use environment variable for Render
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'postgresql://postgres:1234@localhost:5432/stonevista')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# Secret key
-app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
-
-# Cloudinary Configuration
-cloudinary.config(
-    cloud_name = os.environ.get('CLOUDINARY_CLOUD_NAME'),
-    api_key = os.environ.get('CLOUDINARY_API_KEY'),
-    api_secret = os.environ.get('CLOUDINARY_API_SECRET')
-)
+os.makedirs(app.config['UPLOAD_FOLDER'],  exist_ok=True)
+os.makedirs(app.config['MARBLE_FOLDER'],  exist_ok=True)
+os.makedirs(app.config['PROJECT_FOLDER'], exist_ok=True)
 
 db = SQLAlchemy(app)
 
@@ -61,7 +45,7 @@ class Seller(db.Model):
     selected_marbles  = db.Column(db.String(1000))
     address           = db.Column(db.Text)
     description       = db.Column(db.Text)
-    shop_photos       = db.Column(db.Text)  # Cloudinary URLs (comma-separated)
+    shop_photos       = db.Column(db.Text)
     selected_template = db.Column(db.String(50), default='template1')
     whatsapp          = db.Column(db.String(20))
     latitude          = db.Column(db.String(20))
@@ -76,7 +60,7 @@ class Seller(db.Model):
 
 class Marble(db.Model):
     id              = db.Column(db.Integer, primary_key=True)
-    filename        = db.Column(db.String(500), nullable=False)  # Cloudinary URL
+    filename        = db.Column(db.String(200), nullable=False)
     marble_name     = db.Column(db.String(200))
     marble_type     = db.Column(db.String(100))
     origin          = db.Column(db.String(200))
@@ -103,33 +87,11 @@ class Project(db.Model):
     project_title    = db.Column(db.String(200), nullable=False)
     project_type     = db.Column(db.String(100))
     project_location = db.Column(db.String(200))
-    project_image    = db.Column(db.String(500))  # Cloudinary URL
+    project_image    = db.Column(db.String(200))
 
 
 with app.app_context():
     db.create_all()
-
-
-# ═══════════════════════════════════════════════════
-# HELPER FUNCTIONS
-# ═══════════════════════════════════════════════════
-
-def upload_to_cloudinary(file, folder):
-    """Upload file to Cloudinary and return URL"""
-    try:
-        upload_result = cloudinary.uploader.upload(
-            file,
-            folder=folder,
-            transformation=[
-                {'width': 1200, 'height': 800, 'crop': 'limit'},
-                {'quality': 'auto'},
-                {'fetch_format': 'auto'}
-            ]
-        )
-        return upload_result['secure_url']
-    except Exception as e:
-        print(f"Cloudinary upload error: {e}")
-        return None
 
 
 # ═══════════════════════════════════════════════════
@@ -194,7 +156,7 @@ def logout():
 
 
 # ═══════════════════════════════════════════════════
-# ONBOARDING (UPDATED FOR CLOUDINARY)
+# ONBOARDING
 # ═══════════════════════════════════════════════════
 
 @app.route('/info', methods=['GET', 'POST'])
@@ -209,20 +171,19 @@ def info():
             return redirect('/dashboard')
         return render_template('info.html', user=user, marbles=Marble.query.all())
 
-    # CLOUDINARY IMAGE UPLOAD
-    cloudinary_urls = []
+    photos = []
     for photo in request.files.getlist('shop_photos'):
         if photo and photo.filename:
-            url = upload_to_cloudinary(photo, f"stonevista/sellers/{user.id}")
-            if url:
-                cloudinary_urls.append(url)
+            fname = f"shop_{user.id}_{secure_filename(photo.filename)}"
+            photo.save(os.path.join(app.config['UPLOAD_FOLDER'], fname))
+            photos.append(fname)
 
     session['shop_info'] = {
         'shop_name':        request.form.get('shopn'),
         'address':          request.form.get('address'),
         'description':      request.form.get('description'),
         'selected_marbles': ','.join(request.form.getlist('selected_marbles')),
-        'shop_photos':      ','.join(cloudinary_urls),  # Cloudinary URLs
+        'shop_photos':      ','.join(photos),
         'whatsapp':         request.form.get('whatsapp', ''),
         'latitude':         request.form.get('latitude', ''),
         'longitude':        request.form.get('longitude', ''),
@@ -235,7 +196,7 @@ def selecttemp():
     if 'username' not in session or 'shop_info' not in session:
         return redirect('/register')
     if request.method == 'GET':
-        return render_template('selecttemp.html', templates=['template1', 'template2', 'template3'])
+        return render_template('selecttemp.html', templates=['template1', 'template2'])
     si   = session['shop_info']
     user = User.query.filter_by(username=session['username']).first()
     db.session.add(Seller(
@@ -263,6 +224,7 @@ def seller_website(username):
     marble_ids = seller.selected_marbles.split(',') if seller.selected_marbles else []
     marbles    = Marble.query.filter(Marble.id.in_(marble_ids)).all()
  
+    # NEW — fetch reviews and projects
     reviews  = Review.query.filter_by(seller_id=seller.id).order_by(Review.review_date.desc()).all()
     projects = Project.query.filter_by(seller_id=seller.id).all()
     avg_rating = round(sum(r.rating for r in reviews) / len(reviews), 1) if reviews else 0
@@ -272,9 +234,9 @@ def seller_website(username):
         seller=seller,
         user=user,
         marbles=marbles,
-        reviews=reviews,
-        projects=projects,
-        avg_rating=avg_rating
+        reviews=reviews,       # NEW
+        projects=projects,     # NEW
+        avg_rating=avg_rating  # NEW
     )
 
 @app.route('/preview_template/<template_name>')
@@ -306,6 +268,24 @@ def preview_template(template_name):
 
 
 # ═══════════════════════════════════════════════════
+# FILE SERVING
+# ═══════════════════════════════════════════════════
+
+@app.route('/uploads/sellers/<filename>')
+def uploaded_seller_file(filename):
+    try:    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    except: return "Image not found", 404
+
+@app.route('/uploads/marbles/<filename>')
+def uploaded_marble_file(filename):
+    return send_from_directory(app.config['MARBLE_FOLDER'], filename)
+
+@app.route('/uploads/projects/<filename>')
+def uploaded_project_file(filename):
+    return send_from_directory(app.config['PROJECT_FOLDER'], filename)
+
+
+# ═══════════════════════════════════════════════════
 # DASHBOARD
 # ═══════════════════════════════════════════════════
 
@@ -319,210 +299,246 @@ def dashboard():
     if 'username' not in session: return redirect('/login')
     user, seller = _get_user_seller()
     if not seller: return redirect('/info')
-    
-    # Get reviews and projects for dashboard display
-    reviews = Review.query.filter_by(seller_id=seller.id).all()
+    reviews  = Review.query.filter_by(seller_id=seller.id).all()
     projects = Project.query.filter_by(seller_id=seller.id).all()
-    avg_rating = round(sum(r.rating for r in reviews)/len(reviews),1) if reviews else 0
-    
-    return render_template('dashboard.html', 
-                         user=user, 
-                         seller=seller,
-                         reviews=reviews,
-                         projects=projects,
-                         avg_rating=avg_rating)
+    return render_template('dashboard.html', user=user, seller=seller,
+                           reviews=reviews, projects=projects)
+
+@app.route('/visit')
+def visit():
+    if 'username' not in session: return redirect('/login')
+    user, seller = _get_user_seller()
+    if not seller: return redirect('/info')
+    return redirect(f'/seller/{user.username}')
 
 
-# ═══════════════════════════════════════════════════
-# EDIT ROUTES (UPDATED FOR CLOUDINARY)
-# ═══════════════════════════════════════════════════
+# ── edit info ──
 
-@app.route('/edit_info', methods=['GET', 'POST'])
+@app.route('/dashboard/edit/info', methods=['GET', 'POST'])
 def edit_info():
     if 'username' not in session: return redirect('/login')
     user, seller = _get_user_seller()
     if not seller: return redirect('/info')
-    
     if request.method == 'GET':
-        return render_template('edit_info.html', user=user, seller=seller, marbles=Marble.query.all())
-    
-    # Upload new photos to Cloudinary
-    new_photos = []
-    for photo in request.files.getlist('shop_photos'):
-        if photo and photo.filename:
-            url = upload_to_cloudinary(photo, f"stonevista/sellers/{user.id}")
-            if url:
-                new_photos.append(url)
-    
-    # Combine old and new photos
-    existing_photos = request.form.get('existing_photos', '').split(',')
-    existing_photos = [p for p in existing_photos if p]  # Remove empty strings
-    all_photos = existing_photos + new_photos
-    
-    seller.shop_name = request.form.get('shopn')
-    seller.address = request.form.get('address')
-    seller.description = request.form.get('description')
-    seller.selected_marbles = ','.join(request.form.getlist('selected_marbles'))
-    seller.shop_photos = ','.join(all_photos)
-    seller.whatsapp = request.form.get('whatsapp', '')
-    seller.latitude = request.form.get('latitude', '')
-    seller.longitude = request.form.get('longitude', '')
-    seller.maps_link = request.form.get('maps_link', '')
-    
+        return render_template('edit_info.html', seller=seller, user=user)
+    f = request.form
+    seller.shop_name        = f.get('shop_name')
+    seller.address          = f.get('address')
+    seller.description      = f.get('description')
+    seller.whatsapp         = f.get('whatsapp','')
+    seller.email            = f.get('email','')
+    seller.latitude         = f.get('latitude','')
+    seller.longitude        = f.get('longitude','')
+    seller.maps_link        = f.get('maps_link','')
+    seller.years_experience = int(f.get('years_experience',0) or 0)
+    seller.business_type    = f.get('business_type','')
+    seller.bulk_available   = bool(f.get('bulk_available'))
+    seller.delivery_areas   = f.get('delivery_areas','')
     db.session.commit()
-    flash('Shop information updated successfully!')
+    flash('Shop info updated!')
     return redirect('/dashboard')
 
-@app.route('/edit_photos', methods=['GET', 'POST'])
+
+# ── edit photos ──
+
+@app.route('/dashboard/edit/photos', methods=['GET', 'POST'])
 def edit_photos():
     if 'username' not in session: return redirect('/login')
     user, seller = _get_user_seller()
-    if not seller: return redirect('/dashboard')
-    
     if request.method == 'GET':
-        return render_template('edit_photos.html', seller=seller)
-    
-    # Upload new photos to Cloudinary
-    new_urls = []
-    for photo in request.files.getlist('new_photos'):
+        return render_template('edit_photos.html', seller=seller,
+                               current_photos=seller.shop_photos.split(',') if seller.shop_photos else [])
+    saved = []
+    for photo in request.files.getlist('shop_photos'):
         if photo and photo.filename:
-            url = upload_to_cloudinary(photo, f"stonevista/sellers/{user.id}")
-            if url:
-                new_urls.append(url)
-    
-    # Get existing photos that weren't deleted
-    kept_photos = request.form.getlist('keep_photos')
-    all_photos = kept_photos + new_urls
-    
-    seller.shop_photos = ','.join(all_photos)
-    db.session.commit()
-    flash('Photos updated successfully!')
+            fname = f"shop_{user.id}_{secure_filename(photo.filename)}"
+            photo.save(os.path.join(app.config['UPLOAD_FOLDER'], fname))
+            saved.append(fname)
+    if saved:
+        existing = seller.shop_photos.split(',') if seller.shop_photos else []
+        seller.shop_photos = ','.join([p for p in existing if p] + saved)
+        db.session.commit()
+    flash('Photos updated!')
     return redirect('/dashboard')
 
-@app.route('/edit_marbles', methods=['GET', 'POST'])
+@app.route('/dashboard/edit/photos/delete', methods=['POST'])
+def delete_photo():
+    if 'username' not in session: return redirect('/login')
+    _, seller = _get_user_seller()
+    fname   = request.form.get('filename')
+    current = seller.shop_photos.split(',') if seller.shop_photos else []
+    seller.shop_photos = ','.join([f for f in current if f != fname])
+    db.session.commit()
+    fp = os.path.join(app.config['UPLOAD_FOLDER'], fname)
+    if os.path.exists(fp): os.remove(fp)
+    flash('Photo removed.')
+    return redirect('/dashboard/edit/photos')
+
+
+# ── edit marbles ──
+
+@app.route('/dashboard/edit/marbles', methods=['GET', 'POST'])
 def edit_marbles():
     if 'username' not in session: return redirect('/login')
-    user, seller = _get_user_seller()
-    if not seller: return redirect('/dashboard')
-    
+    _, seller = _get_user_seller()
     if request.method == 'GET':
-        return render_template('edit_marbles.html', seller=seller, marbles=Marble.query.all())
-    
+        current_ids = seller.selected_marbles.split(',') if seller.selected_marbles else []
+        return render_template('edit_marbles.html', all_marbles=Marble.query.all(), current_ids=current_ids)
     seller.selected_marbles = ','.join(request.form.getlist('selected_marbles'))
     db.session.commit()
-    flash('Selected marbles updated!')
+    flash('Stone selection updated!')
     return redirect('/dashboard')
 
-@app.route('/edit_template', methods=['GET', 'POST'])
-def edit_template():
+@app.route('/dashboard/marble/add', methods=['POST'])
+def add_marble():
     if 'username' not in session: return redirect('/login')
-    user, seller = _get_user_seller()
-    if not seller: return redirect('/dashboard')
-    
-    if request.method == 'GET':
-        return render_template('edit_template.html', seller=seller, templates=['template1','template2','template3'])
-    
-    seller.selected_template = request.form.get('template')
+    _, seller = _get_user_seller()
+
+    img_file = request.files.get('marble_image')
+    if not img_file or not img_file.filename:
+        flash('Please select an image.')
+        return redirect('/dashboard/edit/marbles')
+
+    # Save file with seller prefix to avoid name clashes
+    fname = f"seller{seller.id}_{secure_filename(img_file.filename)}"
+    img_file.save(os.path.join(app.config['MARBLE_FOLDER'], fname))
+
+    # Create marble record
+    new_marble = Marble(
+        filename    = fname,
+        marble_name = request.form.get('marble_name', '').strip(),
+        marble_type = request.form.get('marble_type', ''),
+    )
+    db.session.add(new_marble)
+    db.session.flush()  # get the new marble ID
+
+    # Auto-select it for this seller
+    current = seller.selected_marbles.split(',') if seller.selected_marbles else []
+    current = [x for x in current if x]  # remove empty strings
+    current.append(str(new_marble.id))
+    seller.selected_marbles = ','.join(current)
+
     db.session.commit()
-    flash('Template changed successfully!')
-    return redirect('/dashboard')
+    flash(f'"{new_marble.marble_name or fname}" added to your catalogue!')
+    return redirect('/dashboard/edit/marbles')
 
 
-# ═══════════════════════════════════════════════════
-# REVIEWS & PROJECTS (UPDATED FOR CLOUDINARY)
-# ═══════════════════════════════════════════════════
-
-@app.route('/edit_reviews', methods=['GET', 'POST'])
-def edit_reviews():
-    if 'username' not in session: return redirect('/login')
-    user, seller = _get_user_seller()
-    if not seller: return redirect('/dashboard')
-    
-    if request.method == 'GET':
-        reviews = Review.query.filter_by(seller_id=seller.id).all()
-        return render_template('edit_reviews.html', seller=seller, reviews=reviews)
-    
-    db.session.add(Review(
-        seller_id=seller.id,
-        reviewer_name=request.form.get('reviewer_name'),
-        reviewer_city=request.form.get('reviewer_city'),
-        rating=int(request.form.get('rating', 5)),
-        review_text=request.form.get('review_text'),
-        verified_buyer=request.form.get('verified_buyer') == 'on'
-    ))
-    db.session.commit()
-    flash('Review added successfully!')
-    return redirect('/edit_reviews')
-
-@app.route('/delete_review/<int:review_id>')
-def delete_review(review_id):
-    if 'username' not in session: return redirect('/login')
-    user, seller = _get_user_seller()
-    review = Review.query.get_or_404(review_id)
-    if review.seller_id == seller.id:
-        db.session.delete(review)
-        db.session.commit()
-        flash('Review deleted')
-    return redirect('/edit_reviews')
-
-@app.route('/edit_projects', methods=['GET', 'POST'])
-def edit_projects():
-    if 'username' not in session: return redirect('/login')
-    user, seller = _get_user_seller()
-    if not seller: return redirect('/dashboard')
-    
-    if request.method == 'GET':
-        projects = Project.query.filter_by(seller_id=seller.id).all()
-        return render_template('edit_projects.html', seller=seller, projects=projects)
-    
-    # Upload project image to Cloudinary
-    project_image_url = None
-    project_image = request.files.get('project_image')
-    if project_image and project_image.filename:
-        project_image_url = upload_to_cloudinary(project_image, f"stonevista/projects/{seller.id}")
-    
-    db.session.add(Project(
-        seller_id=seller.id,
-        project_title=request.form.get('project_title'),
-        project_type=request.form.get('project_type'),
-        project_location=request.form.get('project_location'),
-        project_image=project_image_url
-    ))
-    db.session.commit()
-    flash('Project added successfully!')
-    return redirect('/edit_projects')
-
-@app.route('/delete_project/<int:project_id>')
-def delete_project(project_id):
-    if 'username' not in session: return redirect('/login')
-    user, seller = _get_user_seller()
-    project = Project.query.get_or_404(project_id)
-    if project.seller_id == seller.id:
-        db.session.delete(project)
-        db.session.commit()
-        flash('Project deleted')
-    return redirect('/edit_projects')
-
-@app.route('/edit_marble_detail/<int:marble_id>', methods=['GET', 'POST'])
+@app.route('/dashboard/marble/edit/<int:marble_id>', methods=['GET', 'POST'])
 def edit_marble_detail(marble_id):
     if 'username' not in session: return redirect('/login')
     marble = Marble.query.get_or_404(marble_id)
-    
     if request.method == 'GET':
         return render_template('edit_marble_detail.html', marble=marble)
-    
-    marble.marble_name = request.form.get('marble_name')
-    marble.marble_type = request.form.get('marble_type')
-    marble.origin = request.form.get('origin')
-    marble.finish = request.form.get('finish')
-    marble.thickness = request.form.get('thickness')
-    marble.available_sizes = request.form.get('available_sizes')
-    marble.marble_desc = request.form.get('marble_desc')
-    
+    f = request.form
+    marble.marble_name     = f.get('marble_name','')
+    marble.marble_type     = f.get('marble_type','')
+    marble.origin          = f.get('origin','')
+    marble.finish          = f.get('finish','')
+    marble.thickness       = f.get('thickness','')
+    marble.available_sizes = f.get('available_sizes','')
+    marble.marble_desc     = f.get('marble_desc','')
+    new_img = request.files.get('new_image')
+    if new_img and new_img.filename:
+        fname = secure_filename(new_img.filename)
+        new_img.save(os.path.join(app.config['MARBLE_FOLDER'], fname))
+        marble.filename = fname
     db.session.commit()
     flash('Marble details updated!')
-    return redirect('/edit_marbles')
+    return redirect('/dashboard/edit/marbles')
+
+
+# ── edit template ──
+
+@app.route('/dashboard/edit/template', methods=['GET', 'POST'])
+def edit_template():
+    if 'username' not in session: return redirect('/login')
+    _, seller = _get_user_seller()
+    if request.method == 'GET':
+        return render_template('edit_template.html', seller=seller, templates=['template1','template2'])
+    seller.selected_template = request.form.get('template')
+    db.session.commit()
+    flash('Template updated!')
+    return redirect('/dashboard')
+
+
+# ── reviews ──
+
+@app.route('/dashboard/reviews', methods=['GET', 'POST'])
+def manage_reviews():
+    if 'username' not in session: return redirect('/login')
+    _, seller  = _get_user_seller()
+    reviews    = Review.query.filter_by(seller_id=seller.id).order_by(Review.review_date.desc()).all()
+    if request.method == 'GET':
+        return render_template('edit_reviews.html', seller=seller, reviews=reviews)
+    f = request.form
+    db.session.add(Review(
+        seller_id=seller.id, reviewer_name=f.get('reviewer_name'),
+        reviewer_city=f.get('reviewer_city',''), rating=int(f.get('rating',5)),
+        review_text=f.get('review_text',''),
+        review_date=datetime.strptime(f.get('review_date', datetime.utcnow().strftime('%Y-%m-%d')),'%Y-%m-%d').date(),
+        verified_buyer=bool(f.get('verified_buyer'))
+    ))
+    db.session.commit()
+    flash('Review added!')
+    return redirect('/dashboard/reviews')
+
+@app.route('/dashboard/reviews/delete/<int:rid>', methods=['POST'])
+def delete_review(rid):
+    if 'username' not in session: return redirect('/login')
+    r = Review.query.get_or_404(rid)
+    db.session.delete(r); db.session.commit()
+    flash('Review deleted.')
+    return redirect('/dashboard/reviews')
+
+
+# ── projects ──
+
+@app.route('/dashboard/projects', methods=['GET', 'POST'])
+def manage_projects():
+    if 'username' not in session: return redirect('/login')
+    user, seller = _get_user_seller()
+    projects = Project.query.filter_by(seller_id=seller.id).all()
+    if request.method == 'GET':
+        return render_template('edit_projects.html', seller=seller, projects=projects)
+    img_file = request.files.get('project_image')
+    img_fname = ''
+    if img_file and img_file.filename:
+        img_fname = f"proj_{seller.id}_{secure_filename(img_file.filename)}"
+        img_file.save(os.path.join(app.config['PROJECT_FOLDER'], img_fname))
+    f = request.form
+    db.session.add(Project(
+        seller_id=seller.id, project_title=f.get('project_title'),
+        project_type=f.get('project_type',''), project_location=f.get('project_location',''),
+        project_image=img_fname
+    ))
+    db.session.commit()
+    flash('Project added!')
+    return redirect('/dashboard/projects')
+
+@app.route('/dashboard/projects/delete/<int:pid>', methods=['POST'])
+def delete_project(pid):
+    if 'username' not in session: return redirect('/login')
+    p = Project.query.get_or_404(pid)
+    if p.project_image:
+        fp = os.path.join(app.config['PROJECT_FOLDER'], p.project_image)
+        if os.path.exists(fp): os.remove(fp)
+    db.session.delete(p); db.session.commit()
+    flash('Project deleted.')
+    return redirect('/dashboard/projects')
+
+
+# ── admin ──
+
+@app.route('/admin/add_marbles')
+def add_marbles():
+    if request.args.get('key') != os.environ.get('ADMIN_KEY','changeme'):
+        return "Unauthorized", 403
+    for i in range(1,4):
+        if not Marble.query.filter_by(filename=f'marble{i}.jpg').first():
+            db.session.add(Marble(filename=f'marble{i}.jpg'))
+    db.session.commit()
+    return "Marbles added!"
 
 
 if __name__ == '__main__':
-    app.run(debug=os.environ.get('DEBUG', 'False') == 'True')
+    app.run(debug=True, port=5000)
