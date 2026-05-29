@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Seller Setup — StoneVista</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="static/hero.css">
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<!-- ═══ NAVBAR ════════════════════════════════════════ -->
+<nav class="sv-nav" id="sv-nav">
+  <a href="/" class="sv-brand">Stone<em>Vista</em></a>
+
+  <div class="sv-nav-links">
+    <a href="/#about">About</a>
+    <a href="/#offer">Features</a>
+    <a href="/#process">How It Works</a>
+    <a href="/#reviews">Reviews</a>
+    <a href="/login">Sign In</a>
+    <a href="/register" class="nav-cta">Get Started</a>
+  </div>
+
+  <button class="sv-ham" id="sv-ham"><span></span><span></span><span></span></button>
+</nav>
+
+<div class="sv-mob-nav" id="sv-mob-nav">
+  <a href="/#about">About</a>
+  <a href="/#offer">Features</a>
+  <a href="/#process">How It Works</a>
+  <a href="/#reviews">Reviews</a>
+  <a href="/login">Sign In</a>
+  <a href="/register" class="mob-cta">Get Started</a>
+</div>
+
+<!-- ═══ SELLER SETUP PAGE ════════════════════════════ -->
+<div class="page-body info-page">
+  <div class="info-wrap">
+
+    <!-- Page Header -->
+    <div class="info-page-header reveal">
+      <p class="section-label-sm">Seller Onboarding</p>
+      <h1 class="info-page-title">Set up your<br><em>stone storefront</em></h1>
+      <p class="info-page-sub">Add your shop details, upload a profile image, and select the stone varieties you carry. Your store will be live within 24 hours.</p>
+    </div>
+
+    <form action="/submit_seller" method="POST" enctype="multipart/form-data">
+
+      <!-- ── Block 1: Shop Details ── -->
+      <div class="info-block reveal">
+        <h2 class="info-block-title">Shop Details</h2>
+        <p class="info-block-sub">This is how buyers will discover and recognise your business on the marketplace.</p>
+
+        <div class="field-group">
+          <label class="field-label" for="shopn">Display Name</label>
+          <input
+            type="text" class="field-input" id="shopn"
+            placeholder="e.g. Sharma Marble Works" name="shopn" required
+          >
+        </div>
+
+        <div class="field-group" style="margin-bottom:0;">
+          <label class="field-label" for="file">Profile Image</label>
+          <input
+            type="file" class="field-file" id="file"
+            name="file" accept="image/*" required
+          >
+          <p style="font-size:11px;color:var(--mid);margin-top:8px;line-height:1.5;">
+            Recommended: square image, minimum 400×400px. JPG or PNG.
+          </p>
+        </div>
+      </div>
+
+      <!-- ── Block 2: Stone Selection ── -->
+      <div class="info-block reveal">
+        <h2 class="info-block-title">Select Your Stone Collection</h2>
+        <p class="info-block-sub">Choose the stone varieties you supply. Buyers will browse your product catalogue on your storefront.</p>
+
+        <div class="marble-grid" id="marble-grid">
+          {% for marble in marbles %}
+          <div class="marble-item" id="tile-{{ marble.id }}">
+            <img
+              src="{{ url_for('uploaded_marble_file', filename=marble.filename) }}"
+              alt="{{ marble.filename }}"
+            >
+            <div class="marble-label">{{ marble.filename }}</div>
+            <input
+              type="checkbox"
+              name="selected_marbles"
+              value="{{ marble.id }}"
+              id="cb-{{ marble.id }}"
+            >
+          </div>
+          {% endfor %}
+        </div>
+
+        <p class="selection-count">
+          <strong id="sel-count">0</strong> varieties selected
+        </p>
+
+        <div class="info-action-bar">
+          <a href="/" class="btn-info-cancel">Cancel</a>
+          <button type="submit" class="btn-info-submit">Publish Storefront →</button>
+        </div>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring   = document.getElementById('cursor-ring');
+  let mx=0, my=0, rx=0, ry=0;
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.transform = `translate(${mx}px,${my}px) translate(-50%,-50%)`;
+  });
+  (function animateRing() {
+    rx += (mx - rx) * .12; ry += (my - ry) * .12;
+    ring.style.transform = `translate(${rx}px,${ry}px) translate(-50%,-50%)`;
+    requestAnimationFrame(animateRing);
+  })();
+
+  // Hamburger
+  const ham = document.getElementById('sv-ham');
+  const mob = document.getElementById('sv-mob-nav');
+  ham.addEventListener('click', () => { ham.classList.toggle('open'); mob.classList.toggle('open'); });
+  mob.querySelectorAll('a').forEach(a => a.addEventListener('click', () => { ham.classList.remove('open'); mob.classList.remove('open'); }));
+
+  // Reveal
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); io.unobserve(e.target); } });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(r => io.observe(r));
+
+  // Marble tile selection
+  const counter = document.getElementById('sel-count');
+  function updateCount() {
+    counter.textContent = document.querySelectorAll('input[name="selected_marbles"]:checked').length;
+  }
+  document.querySelectorAll('.marble-item').forEach(tile => {
+    const cb = tile.querySelector('input[type="checkbox"]');
+    tile.addEventListener('click', e => {
+      if (e.target !== cb) cb.checked = !cb.checked;
+      tile.classList.toggle('selected', cb.checked);
+      updateCount();
+    });
+    cb.addEventListener('change', () => {
+      tile.classList.toggle('selected', cb.checked);
+      updateCount();
+    });
+  });
+</script>
+
+</body>
+</html>

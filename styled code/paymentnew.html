@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Activate Your Store — StoneVista</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .payment-page {
+      min-height: calc(100vh - 52px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 60px 24px;
+      background: var(--black);
+    }
+
+    .payment-wrap {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      width: 100%;
+      max-width: 860px;
+    }
+
+    /* ── Plan card ── */
+    .plan-card {
+      background: var(--space);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 44px 38px;
+      position: relative;
+      overflow: hidden;
+    }
+    .plan-card::before {
+      content: '';
+      position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
+      background: linear-gradient(to right, transparent, var(--gold-line), transparent);
+    }
+
+    .plan-badge {
+      display: inline-block;
+      font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+      color: var(--black); background: var(--gold-line);
+      padding: 4px 12px; border-radius: 20px; font-weight: 500;
+      margin-bottom: 24px;
+    }
+
+    .plan-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 13px; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--silver); margin-bottom: 8px;
+    }
+
+    .plan-price {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 62px; font-weight: 300; line-height: 1;
+      color: var(--white); margin-bottom: 4px;
+    }
+    .plan-price sup { font-size: 28px; vertical-align: super; }
+    .plan-price sub { font-size: 18px; color: var(--mid); font-weight: 300; }
+
+    .plan-desc {
+      font-size: 13px; color: var(--mid);
+      margin-bottom: 32px; line-height: 1.6;
+    }
+
+    .plan-features { list-style: none; margin-bottom: 0; }
+    .plan-features li {
+      display: flex; align-items: flex-start; gap: 12px;
+      font-size: 13px; color: rgba(255,255,255,0.72);
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      line-height: 1.5;
+    }
+    .plan-features li:last-child { border-bottom: none; }
+    .feat-check {
+      color: var(--gold-line); font-size: 14px; flex-shrink: 0; margin-top: 1px;
+    }
+
+    /* ── Payment form card ── */
+    .pay-card {
+      background: var(--space);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 44px 38px;
+      position: relative;
+    }
+    .pay-card::before {
+      content: '';
+      position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
+      background: linear-gradient(to right, transparent, rgba(200,184,154,0.3), transparent);
+    }
+
+    .pay-eyebrow {
+      font-size: 10px; letter-spacing: 3.5px; text-transform: uppercase;
+      color: var(--silver); font-weight: 400; margin-bottom: 10px;
+    }
+    .pay-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 30px; font-weight: 300; line-height: 1.15;
+      color: var(--white); margin-bottom: 28px;
+    }
+    .pay-title em { font-style: italic; color: var(--silver); }
+
+    .pay-summary {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px;
+      padding: 16px 18px;
+      margin-bottom: 24px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .pay-summary-label { font-size: 13px; color: var(--mid); }
+    .pay-summary-amount {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px; color: var(--white);
+    }
+
+    .btn-pay {
+      width: 100%;
+      padding: 15px;
+      background: var(--white);
+      color: var(--black);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px; font-weight: 500;
+      border: none; border-radius: 980px;
+      cursor: pointer;
+      transition: background .2s, transform .2s;
+      margin-bottom: 14px;
+    }
+    .btn-pay:hover { background: var(--off-white); transform: scale(1.01); }
+
+    .pay-secure {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      font-size: 11px; color: var(--mid); margin-top: 6px;
+    }
+
+    .pay-user-info {
+      font-size: 13px; color: var(--mid);
+      margin-bottom: 24px; line-height: 1.6;
+    }
+    .pay-user-info strong { color: var(--white); font-weight: 500; }
+
+    @media (max-width: 720px) {
+      .payment-wrap { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<!-- NAVBAR -->
+<nav>
+  <a class="brand" href="/">Stone<em>Vista</em></a>
+  <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+  <div class="nav-links" id="nav-links">
+    <a href="/#about">About</a>
+    <a href="/#offer">Features</a>
+    <a href="/login">Sign In</a>
+  </div>
+</nav>
+
+<!-- PAYMENT PAGE -->
+<div class="page-body payment-page">
+  <div class="payment-wrap">
+
+    <!-- Left: Plan details -->
+    <div class="plan-card reveal">
+      <div class="plan-badge">Most Popular</div>
+      <div class="plan-name">Seller Pro Plan</div>
+      <div class="plan-price">
+        <sup>₹</sup>1,999<sub>/yr</sub>
+      </div>
+      <p class="plan-desc">Everything you need to take your stone business global. One payment. Full access. No hidden fees.</p>
+
+      <ul class="plan-features">
+        <li><span class="feat-check">✦</span> Your own branded online storefront</li>
+        <li><span class="feat-check">✦</span> Unlimited product listings with HD photos</li>
+        <li><span class="feat-check">✦</span> Verified Seller badge for trust</li>
+        <li><span class="feat-check">✦</span> SEO optimisation — get found on Google</li>
+        <li><span class="feat-check">✦</span> Buyer inquiry & messaging system</li>
+        <li><span class="feat-check">✦</span> Sales analytics dashboard</li>
+        <li><span class="feat-check">✦</span> Access to 60+ country buyer network</li>
+        <li><span class="feat-check">✦</span> Priority onboarding support</li>
+      </ul>
+    </div>
+
+    <!-- Right: Pay form -->
+    <div class="pay-card reveal">
+      <p class="pay-eyebrow">One Last Step</p>
+      <h2 class="pay-title">Activate your<br><em>StoneVista store</em></h2>
+
+      <div class="pay-user-info">
+        Welcome, <strong>{{ user.name }}</strong>.<br>
+        Your shop <strong>{{ user.shop_name }}</strong> is ready to go live after payment.
+      </div>
+
+      <div class="pay-summary">
+        <span class="pay-summary-label">Seller Pro — Annual Plan</span>
+        <span class="pay-summary-amount">₹1,999</span>
+      </div>
+
+      <!-- Payment form — replace action with your Razorpay/Stripe handler -->
+      <form action="/payment_success" method="POST" id="pay-form">
+
+        <!-- 
+          ── RAZORPAY INTEGRATION ──
+          Uncomment the script below and replace key_id with your Razorpay key.
+          Remove the plain form submit button and use the Razorpay checkout instead.
+          
+          <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+          Then call Razorpay({...}).open() on button click.
+        -->
+
+        <button type="submit" class="btn-pay">
+          Pay ₹1,999 &amp; Activate Store →
+        </button>
+
+      </form>
+
+      <div class="pay-secure">
+        🔒 Secured &nbsp;·&nbsp; 256-bit SSL &nbsp;·&nbsp; UPI / Cards / Net Banking accepted
+      </div>
+
+      <p style="text-align:center;font-size:12px;color:var(--mid);margin-top:20px;line-height:1.6;">
+        By paying you agree to our <a href="#" style="color:var(--silver)">Terms of Service</a>.<br>
+        Annual plan renews every 12 months. Cancel anytime.
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring   = document.getElementById('cursor-ring');
+  let mx=0, my=0, rx=0, ry=0;
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.transform = `translate(${mx}px,${my}px) translate(-50%,-50%)`;
+  });
+  (function animateRing() {
+    rx += (mx - rx) * .12; ry += (my - ry) * .12;
+    ring.style.transform = `translate(${rx}px,${ry}px) translate(-50%,-50%)`;
+    requestAnimationFrame(animateRing);
+  })();
+
+  // Hamburger
+  const ham  = document.getElementById('hamburger');
+  const menu = document.getElementById('nav-links');
+  ham.addEventListener('click', () => { ham.classList.toggle('open'); menu.classList.toggle('open'); });
+  menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => { ham.classList.remove('open'); menu.classList.remove('open'); }));
+
+  // Reveal
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); io.unobserve(e.target); } });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(r => io.observe(r));
+</script>
+
+</body>
+</html>
